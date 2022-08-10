@@ -47,6 +47,7 @@ class CCVKGPUDescriptorSetHub;
 
 class CCVKGPUFencePool;
 class CCVKGPURecycleBin;
+class CCVKGPURecycleBin2;
 class CCVKGPUStagingBufferPool;
 
 class CC_VULKAN_API CCVKDevice final : public Device {
@@ -96,6 +97,7 @@ public:
 
     CCVKGPUFencePool *gpuFencePool();
     CCVKGPURecycleBin *gpuRecycleBin();
+    CCVKGPURecycleBin2 *gpuRecycleBin2();
     CCVKGPUStagingBufferPool *gpuStagingBufferPool();
     void waitAllFences();
 
@@ -141,6 +143,7 @@ protected:
 
     ccstd::vector<CCVKGPUFencePool *> _gpuFencePools;
     ccstd::vector<CCVKGPURecycleBin *> _gpuRecycleBins;
+    ccstd::vector<CCVKGPURecycleBin2 *> _gpuRecycleBins2;
     ccstd::vector<CCVKGPUStagingBufferPool *> _gpuStagingBufferPools;
 
     CCVKGPUBufferHub *_gpuBufferHub{nullptr};

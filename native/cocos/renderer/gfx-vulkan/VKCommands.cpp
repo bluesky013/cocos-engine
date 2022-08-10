@@ -1648,6 +1648,105 @@ void CCVKGPURecycleBin::clear() {
     _count = 0;
 }
 
+void CCVKGPURecycleBin2::collect(VkEvent event) {
+    emplace(RecycledType::EVENT).vkEvent = event;
+}
+
+void CCVKGPURecycleBin2::collect(VkQueryPool pool) {
+    emplace(RecycledType::QUERY_POOL).vkQueryPool = pool;
+}
+
+void CCVKGPURecycleBin2::collect(VkImage image, VmaAllocation allocation) {
+    auto& res = emplace(RecycledType::TEXTURE);
+    res.image.vkImage = image;
+    res.image.vmaAllocation = allocation;
+}
+
+void CCVKGPURecycleBin2::collect(VkImageView imageView) {
+    emplace(RecycledType::TEXTURE_VIEW).vkImageView = imageView;
+}
+
+void CCVKGPURecycleBin2::collect(VkSampler sampler) {
+    emplace(RecycledType::SAMPLER).vkSampler = sampler;
+}
+
+void CCVKGPURecycleBin2::collect(VkBuffer buffer, VmaAllocation allocation) {
+    auto& res = emplace(RecycledType::BUFFER);
+    res.buffer.vkBuffer = buffer;
+    res.buffer.vmaAllocation = allocation;
+}
+
+void CCVKGPURecycleBin2::collect(VkPipeline pipeline) {
+    emplace(RecycledType::PIPELINE_STATE).vkPipeline = pipeline;
+}
+
+void CCVKGPURecycleBin2::collect(VkFramebuffer frameBuffer) {
+    emplace(RecycledType::FRAMEBUFFER).vkFramebuffer = frameBuffer;
+}
+
+void CCVKGPURecycleBin2::collect(VkRenderPass renderPass) {
+    emplace(RecycledType::RENDER_PASS).vkRenderPass = renderPass;
+}
+
+void CCVKGPURecycleBin2::collect(VkDescriptorSet set) {
+    emplace(RecycledType::DESCRIPTOR_SET).vkSet = set;
+}
+
+void CCVKGPURecycleBin2::clear() {
+    for (Resource &res : _resources) {
+        switch (res.type) {
+            case RecycledType::EVENT:
+                if (res.vkEvent != VK_NULL_HANDLE) {
+                    vkDestroyEvent(_device->vkDevice, res.vkEvent, nullptr);
+                }
+                break;
+            case RecycledType::BUFFER:
+                if (res.buffer.vkBuffer != VK_NULL_HANDLE) {
+                    vmaDestroyBuffer(_device->memoryAllocator, res.buffer.vkBuffer, res.buffer.vmaAllocation);
+                }
+                break;
+            case RecycledType::TEXTURE:
+                if (res.image.vkImage != VK_NULL_HANDLE) {
+                    vmaDestroyImage(_device->memoryAllocator, res.image.vkImage, res.image.vmaAllocation);
+                }
+                break;
+            case RecycledType::TEXTURE_VIEW:
+                if (res.vkImageView) {
+                    vkDestroyImageView(_device->vkDevice, res.vkImageView, nullptr);
+                }
+                break;
+            case RecycledType::FRAMEBUFFER:
+                if (res.vkFramebuffer) {
+                    vkDestroyFramebuffer(_device->vkDevice, res.vkFramebuffer, nullptr);
+                }
+                break;
+            case RecycledType::QUERY_POOL:
+                if (res.vkQueryPool != VK_NULL_HANDLE) {
+                    vkDestroyQueryPool(_device->vkDevice, res.vkQueryPool, nullptr);
+                }
+                break;
+            case RecycledType::RENDER_PASS:
+                if (res.vkRenderPass != VK_NULL_HANDLE) {
+                    vkDestroyRenderPass(_device->vkDevice, res.vkRenderPass, nullptr);
+                }
+                break;
+            case RecycledType::SAMPLER:
+                if (res.vkSampler != VK_NULL_HANDLE) {
+                    vkDestroySampler(_device->vkDevice, res.vkSampler, nullptr);
+                }
+                break;
+            case RecycledType::PIPELINE_STATE:
+                if (res.vkPipeline != VK_NULL_HANDLE) {
+                    vkDestroyPipeline(_device->vkDevice, res.vkPipeline, nullptr);
+                }
+                break;
+            default: break;
+        }
+    }
+    _resources.clear();
+}
+
+
 VkSampleCountFlagBits CCVKGPUContext::getSampleCountForAttachments(Format format, VkFormat vkFormat, SampleCount sampleCount) const {
     if (sampleCount <= SampleCount::ONE) return VK_SAMPLE_COUNT_1_BIT;
 

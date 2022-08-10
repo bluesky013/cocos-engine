@@ -336,8 +336,8 @@ bool CCVKSwapchain::checkSwapchainStatus(uint32_t width, uint32_t height) {
     tempBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
     VkPipelineStageFlags tempSrcStageMask = 0;
     VkPipelineStageFlags tempDstStageMask = 0;
-    auto *colorGPUTexture = static_cast<CCVKTexture *>(_colorTexture.get())->gpuTexture();
-    auto *depthStencilGPUTexture = static_cast<CCVKTexture *>(_depthStencilTexture.get())->gpuTexture();
+    auto colorGPUTexture = static_cast<CCVKTexture *>(_colorTexture.get())->gpuTexture();
+    auto depthStencilGPUTexture = static_cast<CCVKTexture *>(_depthStencilTexture.get())->gpuTexture();
     for (uint32_t i = 0U; i < imageCount; i++) {
         tempBarrier.nextAccessCount = 1;
         tempBarrier.pNextAccesses = getAccessType(AccessFlagBit::PRESENT);

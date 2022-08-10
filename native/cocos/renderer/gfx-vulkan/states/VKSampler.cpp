@@ -34,24 +34,44 @@ CCVKSampler::CCVKSampler(const SamplerInfo &info) : Sampler(info) {
     _typedID = generateObjectID<decltype(this)>();
 
     _gpuSampler = ccnew CCVKGPUSampler;
-    _gpuSampler->minFilter = _info.minFilter;
-    _gpuSampler->magFilter = _info.magFilter;
-    _gpuSampler->mipFilter = _info.mipFilter;
-    _gpuSampler->addressU = _info.addressU;
-    _gpuSampler->addressV = _info.addressV;
-    _gpuSampler->addressW = _info.addressW;
-    _gpuSampler->maxAnisotropy = _info.maxAnisotropy;
-    _gpuSampler->cmpFunc = _info.cmpFunc;
-
-    cmdFuncCCVKCreateSampler(CCVKDevice::getInstance(), _gpuSampler);
+    _gpuSampler->init(_info);
+//    _gpuSampler->minFilter = _info.minFilter;
+//    _gpuSampler->magFilter = _info.magFilter;
+//    _gpuSampler->mipFilter = _info.mipFilter;
+//    _gpuSampler->addressU = _info.addressU;
+//    _gpuSampler->addressV = _info.addressV;
+//    _gpuSampler->addressW = _info.addressW;
+//    _gpuSampler->maxAnisotropy = _info.maxAnisotropy;
+//    _gpuSampler->cmpFunc = _info.cmpFunc;
+//
+//    cmdFuncCCVKCreateSampler(CCVKDevice::getInstance(), _gpuSampler);
 }
 
 CCVKSampler::~CCVKSampler() { // NOLINT(bugprone-exception-escape) garbage collect may throw
-    if (_gpuSampler) {
-        CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(_gpuSampler);
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuSampler);
-        _gpuSampler = nullptr;
-    }
+    _gpuSampler = nullptr;
+//    if (_gpuSampler) {
+//        CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(_gpuSampler);
+//        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuSampler);
+//        _gpuSampler = nullptr;
+//    }
+}
+
+CCVKGPUSampler::~CCVKGPUSampler() {
+    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(this);
+    CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkSampler);
+}
+
+void CCVKGPUSampler::init(const SamplerInfo& info) {
+    minFilter = info.minFilter;
+    magFilter = info.magFilter;
+    mipFilter = info.mipFilter;
+    addressU = info.addressU;
+    addressV = info.addressV;
+    addressW = info.addressW;
+    maxAnisotropy = info.maxAnisotropy;
+    cmpFunc = info.cmpFunc;
+
+    cmdFuncCCVKCreateSampler(CCVKDevice::getInstance(), this);
 }
 
 } // namespace gfx

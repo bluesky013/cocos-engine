@@ -27,11 +27,10 @@
 
 #include "VKStd.h"
 #include "gfx-base/GFXDescriptorSet.h"
+#include "gfx-vulkan/VKTexture.h"
 
 namespace cc {
 namespace gfx {
-
-struct CCVKGPUDescriptorSet;
 
 class CC_VULKAN_API CCVKDescriptorSet final : public DescriptorSet {
 public:
@@ -41,13 +40,13 @@ public:
     void update() override;
     void forceUpdate() override;
 
-    inline CCVKGPUDescriptorSet *gpuDescriptorSet() const { return _gpuDescriptorSet; }
+    inline IntrusivePtr<CCVKGPUDescriptorSet> gpuDescriptorSet() const { return _gpuDescriptorSet; }
 
 protected:
     void doInit(const DescriptorSetInfo &info) override;
     void doDestroy() override;
 
-    CCVKGPUDescriptorSet *_gpuDescriptorSet = nullptr;
+    IntrusivePtr<CCVKGPUDescriptorSet> _gpuDescriptorSet;
 };
 
 } // namespace gfx

@@ -45,23 +45,41 @@ void CCVKDescriptorSetLayout::doInit(const DescriptorSetLayoutInfo & /*info*/) {
     _gpuDescriptorSetLayout->bindingIndices = _bindingIndices;
     _gpuDescriptorSetLayout->descriptorIndices = _descriptorIndices;
     _gpuDescriptorSetLayout->bindings = _bindings;
+    _gpuDescriptorSetLayout->init();
 
-    for (auto &binding : _bindings) {
+//    for (auto &binding : _bindings) {
+//        if (hasAnyFlags(binding.descriptorType, DESCRIPTOR_DYNAMIC_TYPE)) {
+//            for (uint32_t j = 0U; j < binding.count; j++) {
+//                _gpuDescriptorSetLayout->dynamicBindings.push_back(binding.binding);
+//            }
+//        }
+//    }
+//
+//    cmdFuncCCVKCreateDescriptorSetLayout(CCVKDevice::getInstance(), _gpuDescriptorSetLayout);
+}
+
+void CCVKDescriptorSetLayout::doDestroy() {
+    _gpuDescriptorSetLayout = nullptr;
+//    if (_gpuDescriptorSetLayout) {
+//        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuDescriptorSetLayout);
+//        _gpuDescriptorSetLayout = nullptr;
+//    }
+}
+
+CCVKGPUDescriptorSetLayout::~CCVKGPUDescriptorSetLayout() {
+    cmdFuncCCVKDestroyDescriptorSetLayout(CCVKDevice::getInstance()->gpuDevice(), this);
+}
+
+void CCVKGPUDescriptorSetLayout::init() {
+    for (auto &binding : bindings) {
         if (hasAnyFlags(binding.descriptorType, DESCRIPTOR_DYNAMIC_TYPE)) {
             for (uint32_t j = 0U; j < binding.count; j++) {
-                _gpuDescriptorSetLayout->dynamicBindings.push_back(binding.binding);
+                dynamicBindings.push_back(binding.binding);
             }
         }
     }
 
-    cmdFuncCCVKCreateDescriptorSetLayout(CCVKDevice::getInstance(), _gpuDescriptorSetLayout);
-}
-
-void CCVKDescriptorSetLayout::doDestroy() {
-    if (_gpuDescriptorSetLayout) {
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuDescriptorSetLayout);
-        _gpuDescriptorSetLayout = nullptr;
-    }
+    cmdFuncCCVKCreateDescriptorSetLayout(CCVKDevice::getInstance(), this);
 }
 
 } // namespace gfx

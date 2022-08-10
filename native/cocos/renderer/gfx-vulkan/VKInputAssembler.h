@@ -27,24 +27,24 @@
 
 #include "VKStd.h"
 #include "gfx-base/GFXInputAssembler.h"
+#include "gfx-vulkan/VKGPUObjects.h"
 
 namespace cc {
 namespace gfx {
-
-struct CCVKGPUInputAssembler;
 
 class CC_VULKAN_API CCVKInputAssembler final : public InputAssembler {
 public:
     CCVKInputAssembler();
     ~CCVKInputAssembler() override;
 
-    inline CCVKGPUInputAssembler *gpuInputAssembler() const { return _gpuInputAssembler; }
+    inline IntrusivePtr<CCVKGPUInputAssembler> gpuInputAssembler() const { return _gpuInputAssembler; }
 
 protected:
     void doInit(const InputAssemblerInfo &info) override;
     void doDestroy() override;
 
-    CCVKGPUInputAssembler *_gpuInputAssembler = nullptr;
+
+    IntrusivePtr<CCVKGPUInputAssembler> _gpuInputAssembler;
 };
 
 } // namespace gfx

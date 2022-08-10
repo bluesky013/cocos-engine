@@ -56,26 +56,44 @@ void CCVKFramebuffer::doInit(const FramebufferInfo & /*info*/) {
         _gpuFBO->gpuDepthStencilView = depthTex->gpuTextureView();
         CCVKDevice::getInstance()->gpuFramebufferHub()->connect(depthTex->gpuTexture(), _gpuFBO);
     }
+    _gpuFBO->init();
 
-    cmdFuncCCVKCreateFramebuffer(CCVKDevice::getInstance(), _gpuFBO);
+//    cmdFuncCCVKCreateFramebuffer(CCVKDevice::getInstance(), _gpuFBO);
 }
 
 void CCVKFramebuffer::doDestroy() {
-    if (_gpuFBO) {
-        for (auto &colorTexture : _colorTextures) {
-            auto *colorTex = static_cast<CCVKTexture *>(colorTexture);
-            CCVKDevice::getInstance()->gpuFramebufferHub()->disengage(colorTex->gpuTexture(), _gpuFBO);
-        }
+    _gpuFBO = nullptr;
+//    if (_gpuFBO) {
+//        for (auto &colorTexture : _colorTextures) {
+//            auto *colorTex = static_cast<CCVKTexture *>(colorTexture);
+//            CCVKDevice::getInstance()->gpuFramebufferHub()->disengage(colorTex->gpuTexture(), _gpuFBO);
+//        }
+//
+//        if (_depthStencilTexture) {
+//            auto *depthTex = static_cast<CCVKTexture *>(_depthStencilTexture);
+//            CCVKDevice::getInstance()->gpuFramebufferHub()->disengage(depthTex->gpuTexture(), _gpuFBO);
+//        }
+//
+//        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuFBO);
+//        delete _gpuFBO;
+//        _gpuFBO = nullptr;
+//    }
+}
 
-        if (_depthStencilTexture) {
-            auto *depthTex = static_cast<CCVKTexture *>(_depthStencilTexture);
-            CCVKDevice::getInstance()->gpuFramebufferHub()->disengage(depthTex->gpuTexture(), _gpuFBO);
-        }
-
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuFBO);
-        delete _gpuFBO;
-        _gpuFBO = nullptr;
+CCVKGPUFramebuffer::~CCVKGPUFramebuffer() {
+    ccstd::vector<IntrusivePtr<CCVKGPUTextureView>> gpuColorViews;
+    IntrusivePtr<CCVKGPUTextureView> gpuDepthStencilView;
+    for (auto& view : gpuColorViews) {
+        CCVKDevice::getInstance()->gpuFramebufferHub()->disengage(view->gpuTexture.get(), this);
     }
+    if (gpuDepthStencilView) {
+        CCVKDevice::getInstance()->gpuFramebufferHub()->disengage(gpuDepthStencilView->gpuTexture.get(), this);
+    }
+    CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkFramebuffer);
+}
+
+void CCVKGPUFramebuffer::init() {
+    cmdFuncCCVKCreateFramebuffer(CCVKDevice::getInstance(), this);
 }
 
 } // namespace gfx

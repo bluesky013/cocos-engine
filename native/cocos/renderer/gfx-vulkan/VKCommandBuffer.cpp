@@ -382,7 +382,7 @@ void CCVKCommandBuffer::draw(const DrawInfo &info) {
         bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS);
     }
 
-    const auto *gpuIndirectBuffer = _curGPUInputAssember->gpuIndirectBuffer;
+    const auto gpuIndirectBuffer = _curGPUInputAssember->gpuIndirectBuffer;
 
     if (gpuIndirectBuffer) {
         uint32_t drawInfoCount = gpuIndirectBuffer->range / gpuIndirectBuffer->gpuBuffer->stride;
@@ -657,14 +657,14 @@ void CCVKCommandBuffer::pipelineBarrier(const GeneralBarrier *barrier, const Buf
             const auto *ccBarrier = static_cast<const CCVKTextureBarrier *const>(textureBarriers[i]);
             const auto *gpuBarrier = ccBarrier->gpuBarrier();
             const auto *ccTexture = static_cast<const CCVKTexture *const>(textures[i]);
-            auto *gpuTexture = ccTexture->gpuTexture();
+            auto gpuTexture = ccTexture->gpuTexture();
 
             if (ccBarrier->getInfo().type == BarrierType::SPLIT_BEGIN) {
                 signalEvent(ccTexture, gpuBarrier->srcStageMask);
             } else {
                 bool fullBarrier = ccBarrier->getInfo().type == BarrierType::FULL;
                 if (!fullBarrier) {
-                    auto key = ccstd::hash_value(gpuTexture);
+                    auto key = ccstd::hash_value(gpuTexture.get());
                     CC_ASSERT(_barrierEvents.find(ccTexture) != _barrierEvents.end());
                     VkEvent event = _barrierEvents.at(ccTexture);
                     scheduledEvents.push_back(event);
@@ -691,7 +691,7 @@ void CCVKCommandBuffer::pipelineBarrier(const GeneralBarrier *barrier, const Buf
             const auto *ccBarrier = static_cast<const CCVKBufferBarrier *const>(bufferBarriers[i]);
             const auto *gpuBarrier = ccBarrier->gpuBarrier();
             const auto *ccBuffer = static_cast<const CCVKBuffer *const>(buffers[i]);
-            auto *gpuBuffer = ccBuffer->gpuBuffer();
+            auto gpuBuffer = ccBuffer->gpuBuffer();
 
             if (ccBarrier->getInfo().type == BarrierType::SPLIT_BEGIN) {
                 signalEvent(ccBuffer, gpuBarrier->srcStageMask);
@@ -788,6 +788,5 @@ void CCVKCommandBuffer::resetQueryPool(QueryPool *queryPool) {
     vkCmdResetQueryPool(_gpuCommandBuffer->vkCommandBuffer, gpuQueryPool->vkPool, 0, queryPool->getMaxQueryObjects());
     vkQueryPool->_ids.clear();
 }
-
 } // namespace gfx
 } // namespace cc

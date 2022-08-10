@@ -508,6 +508,7 @@ void CCVKDevice::doDestroy() {
 
             CC_SAFE_DELETE(_gpuStagingBufferPools[i])
             CC_SAFE_DELETE(_gpuRecycleBins[i])
+            CC_SAFE_DELETE(_gpuRecycleBins2[i])
             CC_SAFE_DELETE(_gpuFencePools[i])
         }
     }
@@ -703,6 +704,7 @@ void CCVKDevice::present() {
 
 CCVKGPUFencePool *CCVKDevice::gpuFencePool() { return _gpuFencePools[_gpuDevice->curBackBufferIndex]; }
 CCVKGPURecycleBin *CCVKDevice::gpuRecycleBin() { return _gpuRecycleBins[_gpuDevice->curBackBufferIndex]; }
+CCVKGPURecycleBin2 *CCVKDevice::gpuRecycleBin2() { return _gpuRecycleBins2[_gpuDevice->curBackBufferIndex]; }
 CCVKGPUStagingBufferPool *CCVKDevice::gpuStagingBufferPool() { return _gpuStagingBufferPools[_gpuDevice->curBackBufferIndex]; }
 
 void CCVKDevice::waitAllFences() {
@@ -727,6 +729,7 @@ void CCVKDevice::updateBackBufferCount(uint32_t backBufferCount) {
     for (uint32_t i = _gpuDevice->backBufferCount; i < backBufferCount; i++) {
         _gpuFencePools.push_back(ccnew CCVKGPUFencePool(_gpuDevice));
         _gpuRecycleBins.push_back(ccnew CCVKGPURecycleBin(_gpuDevice));
+        _gpuRecycleBins2.push_back(ccnew CCVKGPURecycleBin2(_gpuDevice));
         _gpuStagingBufferPools.push_back(ccnew CCVKGPUStagingBufferPool(_gpuDevice));
     }
     _gpuBufferHub->updateBackBufferCount(backBufferCount);

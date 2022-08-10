@@ -27,18 +27,17 @@
 
 #include "VKStd.h"
 #include "gfx-base/GFXDescriptorSetLayout.h"
+#include "gfx-vulkan/VKGPUObjects.h"
 
 namespace cc {
 namespace gfx {
-
-struct CCVKGPUDescriptorSetLayout;
 
 class CC_VULKAN_API CCVKDescriptorSetLayout final : public DescriptorSetLayout {
 public:
     CCVKDescriptorSetLayout();
     ~CCVKDescriptorSetLayout() override;
 
-    inline CCVKGPUDescriptorSetLayout *gpuDescriptorSetLayout() const { return _gpuDescriptorSetLayout; }
+    inline IntrusivePtr<CCVKGPUDescriptorSetLayout> gpuDescriptorSetLayout() const { return _gpuDescriptorSetLayout; }
 
 protected:
     static uint32_t generateID() noexcept {
@@ -49,7 +48,7 @@ protected:
     void doInit(const DescriptorSetLayoutInfo &info) override;
     void doDestroy() override;
 
-    CCVKGPUDescriptorSetLayout *_gpuDescriptorSetLayout = nullptr;
+    IntrusivePtr<CCVKGPUDescriptorSetLayout> _gpuDescriptorSetLayout;
 };
 
 } // namespace gfx

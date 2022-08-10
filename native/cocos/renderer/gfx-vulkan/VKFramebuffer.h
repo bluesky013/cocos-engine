@@ -27,6 +27,7 @@
 
 #include "VKStd.h"
 #include "gfx-base/GFXFramebuffer.h"
+#include "gfx-vulkan/VKTexture.h"
 
 namespace cc {
 namespace gfx {
@@ -38,13 +39,13 @@ public:
     CCVKFramebuffer();
     ~CCVKFramebuffer() override;
 
-    inline CCVKGPUFramebuffer *gpuFBO() const { return _gpuFBO; }
+    inline IntrusivePtr<CCVKGPUFramebuffer> gpuFBO() const { return _gpuFBO; }
 
 protected:
     void doInit(const FramebufferInfo &info) override;
     void doDestroy() override;
 
-    CCVKGPUFramebuffer *_gpuFBO = nullptr;
+    IntrusivePtr<CCVKGPUFramebuffer> _gpuFBO;
 };
 
 } // namespace gfx
