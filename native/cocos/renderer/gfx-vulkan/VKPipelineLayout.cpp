@@ -52,15 +52,23 @@ void CCVKPipelineLayout::doInit(const PipelineLayoutInfo & /*info*/) {
     }
     _gpuPipelineLayout->dynamicOffsetOffsets.push_back(offset);
     _gpuPipelineLayout->dynamicOffsetCount = offset;
-
-    cmdFuncCCVKCreatePipelineLayout(CCVKDevice::getInstance(), _gpuPipelineLayout);
+    _gpuPipelineLayout->init();
 }
 
 void CCVKPipelineLayout::doDestroy() {
-    if (_gpuPipelineLayout) {
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuPipelineLayout);
-        _gpuPipelineLayout = nullptr;
-    }
+    _gpuPipelineLayout = nullptr;
+//    if (_gpuPipelineLayout) {
+//        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuPipelineLayout);
+//        _gpuPipelineLayout = nullptr;
+//    }
+}
+
+void CCVKGPUPipelineLayout::init() {
+    cmdFuncCCVKCreatePipelineLayout(CCVKDevice::getInstance(), this);
+}
+
+CCVKGPUPipelineLayout::~CCVKGPUPipelineLayout() {
+    cmdFuncCCVKDestroyPipelineLayout(CCVKDevice::getInstance()->gpuDevice(), this);
 }
 
 } // namespace gfx

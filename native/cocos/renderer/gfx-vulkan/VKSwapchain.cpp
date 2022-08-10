@@ -301,6 +301,7 @@ bool CCVKSwapchain::checkSwapchainStatus(uint32_t width, uint32_t height) {
 
     _gpuSwapchain->createInfo.surface = _gpuSwapchain->vkSurface;
     _gpuSwapchain->createInfo.oldSwapchain = _gpuSwapchain->vkSwapchain;
+    _generation++;
 
     CC_LOG_INFO("Resizing surface: %dx%d", newWidth, newHeight);
 
@@ -336,8 +337,8 @@ bool CCVKSwapchain::checkSwapchainStatus(uint32_t width, uint32_t height) {
     tempBarrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
     VkPipelineStageFlags tempSrcStageMask = 0;
     VkPipelineStageFlags tempDstStageMask = 0;
-    auto *colorGPUTexture = static_cast<CCVKTexture *>(_colorTexture.get())->gpuTexture();
-    auto *depthStencilGPUTexture = static_cast<CCVKTexture *>(_depthStencilTexture.get())->gpuTexture();
+    auto colorGPUTexture = static_cast<CCVKTexture *>(_colorTexture.get())->gpuTexture();
+    auto depthStencilGPUTexture = static_cast<CCVKTexture *>(_depthStencilTexture.get())->gpuTexture();
     for (uint32_t i = 0U; i < imageCount; i++) {
         tempBarrier.nextAccessCount = 1;
         tempBarrier.pNextAccesses = getAccessType(AccessFlagBit::PRESENT);
@@ -372,13 +373,13 @@ bool CCVKSwapchain::checkSwapchainStatus(uint32_t width, uint32_t height) {
 
 void CCVKSwapchain::destroySwapchain(CCVKGPUDevice *gpuDevice) {
     if (_gpuSwapchain->vkSwapchain != VK_NULL_HANDLE) {
-        for (auto &it : _gpuSwapchain->vkSwapchainFramebufferListMap) {
-            FramebufferList &list = it.second;
-            for (VkFramebuffer framebuffer : list) {
-                vkDestroyFramebuffer(gpuDevice->vkDevice, framebuffer, nullptr);
-            }
-            list.clear();
-        }
+//        for (auto &it : _gpuSwapchain->vkSwapchainFramebufferListMap) {
+//            FramebufferList &list = it.second;
+//            for (VkFramebuffer framebuffer : list) {
+//                vkDestroyFramebuffer(gpuDevice->vkDevice, framebuffer, nullptr);
+//            }
+//            list.clear();
+//        }
 
         _gpuSwapchain->swapchainImages.clear();
 

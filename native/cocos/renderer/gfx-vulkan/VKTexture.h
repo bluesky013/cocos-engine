@@ -27,20 +27,18 @@
 
 #include "VKStd.h"
 #include "gfx-base/GFXTexture.h"
+#include "VKGPUObjects.h"
 
 namespace cc {
 namespace gfx {
-
-struct CCVKGPUTexture;
-struct CCVKGPUTextureView;
 
 class CC_VULKAN_API CCVKTexture final : public Texture {
 public:
     CCVKTexture();
     ~CCVKTexture() override;
 
-    inline CCVKGPUTexture *gpuTexture() const { return _gpuTexture; }
-    inline CCVKGPUTextureView *gpuTextureView() const { return _gpuTextureView; }
+    inline IntrusivePtr<CCVKGPUTexture> gpuTexture() const { return _gpuTexture; }
+    inline IntrusivePtr<CCVKGPUTextureView> gpuTextureView() const { return _gpuTextureView; }
 
 protected:
     friend class CCVKSwapchain;
@@ -51,10 +49,10 @@ protected:
     void doDestroy() override;
     void doResize(uint32_t width, uint32_t height, uint32_t size) override;
 
-    void createTextureView();
+//    void createTextureView();
 
-    CCVKGPUTexture *_gpuTexture = nullptr;
-    CCVKGPUTextureView *_gpuTextureView = nullptr;
+    IntrusivePtr<CCVKGPUTexture> _gpuTexture;
+    IntrusivePtr<CCVKGPUTextureView> _gpuTextureView;
 };
 
 } // namespace gfx

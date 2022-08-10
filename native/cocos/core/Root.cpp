@@ -23,6 +23,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
+#include <bindings/event/EventDispatcher.h>
+#include <bindings/event/CustomEventTypes.h>
 #include "core/Root.h"
 #include "2d/renderer/Batcher2d.h"
 #include "core/event/CallbacksInvoker.h"
@@ -92,6 +94,18 @@ void Root::initialize(gfx::Swapchain *swapchain) {
 
     _curWindow = _mainWindow;
 
+    EventDispatcher::addCustomEventListener(EVENT_DESTROY_WINDOW, [this](const CustomEvent &e) -> void {
+        for (const auto &window : _windows) {
+            window->onDestroy(e.args->ptrVal);
+        }
+    });
+
+    EventDispatcher::addCustomEventListener(EVENT_RECREATE_WINDOW, [this](const CustomEvent &e) -> void {
+        for (const auto &window : _windows) {
+            window->onResume(e.args->ptrVal);
+        }
+    });
+
     // TODO(minggo):
     // return Promise.resolve(builtinResMgr.initBuiltinRes(this._device));
 }
@@ -101,7 +115,13 @@ render::Pipeline *Root::getCustomPipeline() const {
 }
 
 void Root::destroy() {
+
     destroyScenes();
+
+    _mainWindow = nullptr;
+    _curWindow = nullptr;
+    _tempWindow = nullptr;
+    _windows.clear();
 
     if (_usesCustomPipeline && _pipelineRuntime) {
         _pipelineRuntime->destroy();

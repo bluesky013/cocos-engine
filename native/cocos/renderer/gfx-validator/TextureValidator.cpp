@@ -118,7 +118,6 @@ void TextureValidator::doResize(uint32_t width, uint32_t height, uint32_t /*size
     CC_ASSERT(!_isTextureView);
 
     /////////// execute ///////////
-
     _actor->resize(width, height);
 }
 

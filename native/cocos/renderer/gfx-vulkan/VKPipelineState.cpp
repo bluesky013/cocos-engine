@@ -59,19 +59,33 @@ void CCVKPipelineState::doInit(const PipelineStateInfo & /*info*/) {
             _gpuPipelineState->dynamicStates.push_back(static_cast<DynamicStateFlagBit>(1 << i));
         }
     }
+    _gpuPipelineState->init();
 
-    if (_bindPoint == PipelineBindPoint::GRAPHICS) {
-        cmdFuncCCVKCreateGraphicsPipelineState(CCVKDevice::getInstance(), _gpuPipelineState);
-    } else {
-        cmdFuncCCVKCreateComputePipelineState(CCVKDevice::getInstance(), _gpuPipelineState);
-    }
+//    if (_bindPoint == PipelineBindPoint::GRAPHICS) {
+//        cmdFuncCCVKCreateGraphicsPipelineState(CCVKDevice::getInstance(), _gpuPipelineState);
+//    } else {
+//        cmdFuncCCVKCreateComputePipelineState(CCVKDevice::getInstance(), _gpuPipelineState);
+//    }
 }
 
 void CCVKPipelineState::doDestroy() {
-    if (_gpuPipelineState) {
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuPipelineState);
-        _gpuPipelineState = nullptr;
+    _gpuPipelineState = nullptr;
+//    if (_gpuPipelineState) {
+//        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuPipelineState);
+//        _gpuPipelineState = nullptr;
+//    }
+}
+
+void CCVKGPUPipelineState::init() {
+    if (bindPoint == PipelineBindPoint::GRAPHICS) {
+        cmdFuncCCVKCreateGraphicsPipelineState(CCVKDevice::getInstance(), this);
+    } else {
+        cmdFuncCCVKCreateComputePipelineState(CCVKDevice::getInstance(), this);
     }
+}
+
+CCVKGPUPipelineState::~CCVKGPUPipelineState() {
+    CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkPipeline);
 }
 
 } // namespace gfx

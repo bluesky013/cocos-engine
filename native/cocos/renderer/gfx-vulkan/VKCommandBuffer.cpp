@@ -94,7 +94,7 @@ void CCVKCommandBuffer::begin(RenderPass *renderPass, uint32_t subpass, Framebuf
             if (gpuFBO->isOffscreen) {
                 inheritanceInfo.framebuffer = gpuFBO->vkFramebuffer;
             } else {
-                inheritanceInfo.framebuffer = gpuFBO->swapchain->vkSwapchainFramebufferListMap[gpuFBO][gpuFBO->swapchain->curImageIndex];
+                inheritanceInfo.framebuffer = gpuFBO->vkFrameBuffers[gpuFBO->swapchain->curImageIndex];
             }
         }
         beginInfo.pInheritanceInfo = &inheritanceInfo;
@@ -143,7 +143,7 @@ void CCVKCommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *fbo
     _curGPURenderPass = static_cast<CCVKRenderPass *>(renderPass)->gpuRenderPass();
     VkFramebuffer framebuffer{_curGPUFBO->vkFramebuffer};
     if (!_curGPUFBO->isOffscreen) {
-        framebuffer = _curGPUFBO->swapchain->vkSwapchainFramebufferListMap[_curGPUFBO][_curGPUFBO->swapchain->curImageIndex];
+        framebuffer = _curGPUFBO->vkFrameBuffers[_curGPUFBO->swapchain->curImageIndex];
     }
 
     ccstd::vector<VkClearValue> &clearValues = _curGPURenderPass->clearValues;
@@ -172,8 +172,7 @@ void CCVKCommandBuffer::beginRenderPass(RenderPass *renderPass, Framebuffer *fbo
     passBeginInfo.renderArea.offset = {safeArea.x, safeArea.y};
     passBeginInfo.renderArea.extent = {safeArea.width, safeArea.height};
 
-    vkCmdBeginRenderPass(_gpuCommandBuffer->vkCommandBuffer, &passBeginInfo,
-                         secondaryCBCount ? VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(_gpuCommandBuffer->vkCommandBuffer, &passBeginInfo, secondaryCBCount ? VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : VK_SUBPASS_CONTENTS_INLINE);
 
     _secondaryRP = secondaryCBCount;
 
@@ -217,7 +216,7 @@ void CCVKCommandBuffer::endRenderPass() {
 }
 
 void CCVKCommandBuffer::bindPipelineState(PipelineState *pso) {
-    CCVKGPUPipelineState *gpuPipelineState = static_cast<CCVKPipelineState *>(pso)->gpuPipelineState();
+    IntrusivePtr<CCVKGPUPipelineState> gpuPipelineState = static_cast<CCVKPipelineState *>(pso)->gpuPipelineState();
 
     if (_curGPUPipelineState != gpuPipelineState) {
         vkCmdBindPipeline(_gpuCommandBuffer->vkCommandBuffer, VK_PIPELINE_BIND_POINTS[toNumber(gpuPipelineState->bindPoint)], gpuPipelineState->vkPipeline);
@@ -228,7 +227,7 @@ void CCVKCommandBuffer::bindPipelineState(PipelineState *pso) {
 void CCVKCommandBuffer::bindDescriptorSet(uint32_t set, DescriptorSet *descriptorSet, uint32_t dynamicOffsetCount, const uint32_t *dynamicOffsets) {
     CC_ASSERT(_curGPUDescriptorSets.size() > set);
 
-    CCVKGPUDescriptorSet *gpuDescriptorSet = static_cast<CCVKDescriptorSet *>(descriptorSet)->gpuDescriptorSet();
+    IntrusivePtr<CCVKGPUDescriptorSet> gpuDescriptorSet = static_cast<CCVKDescriptorSet *>(descriptorSet)->gpuDescriptorSet();
 
     if (_curGPUDescriptorSets[set] != gpuDescriptorSet) {
         _curGPUDescriptorSets[set] = gpuDescriptorSet;
@@ -243,7 +242,7 @@ void CCVKCommandBuffer::bindDescriptorSet(uint32_t set, DescriptorSet *descripto
 }
 
 void CCVKCommandBuffer::bindInputAssembler(InputAssembler *ia) {
-    CCVKGPUInputAssembler *gpuInputAssembler = static_cast<CCVKInputAssembler *>(ia)->gpuInputAssembler();
+    IntrusivePtr<CCVKGPUInputAssembler> gpuInputAssembler = static_cast<CCVKInputAssembler *>(ia)->gpuInputAssembler();
 
     if (_curGPUInputAssember != gpuInputAssembler) {
         // buffers may be rebuilt(e.g. resize event) without IA's acknowledge
@@ -264,7 +263,7 @@ void CCVKCommandBuffer::bindInputAssembler(InputAssembler *ia) {
 
         if (gpuInputAssembler->gpuIndexBuffer) {
             vkCmdBindIndexBuffer(_gpuCommandBuffer->vkCommandBuffer, gpuInputAssembler->gpuIndexBuffer->gpuBuffer->vkBuffer,
-                                 gpuInputAssembler->gpuIndexBuffer->gpuBuffer->getStartOffset(gpuDevice->curBackBufferIndex),
+                                 gpuInputAssembler->gpuIndexBuffer->getStartOffset(gpuDevice->curBackBufferIndex),
                                  gpuInputAssembler->gpuIndexBuffer->gpuBuffer->stride == 4 ? VK_INDEX_TYPE_UINT32 : VK_INDEX_TYPE_UINT16);
         }
         _curGPUInputAssember = gpuInputAssembler;
@@ -382,7 +381,7 @@ void CCVKCommandBuffer::draw(const DrawInfo &info) {
         bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS);
     }
 
-    const auto *gpuIndirectBuffer = _curGPUInputAssember->gpuIndirectBuffer;
+    const auto gpuIndirectBuffer = _curGPUInputAssember->gpuIndirectBuffer;
 
     if (gpuIndirectBuffer) {
         uint32_t drawInfoCount = gpuIndirectBuffer->range / gpuIndirectBuffer->gpuBuffer->stride;
@@ -475,8 +474,8 @@ void CCVKCommandBuffer::execute(CommandBuffer *const *cmdBuffs, uint32_t count) 
 
 void CCVKCommandBuffer::updateBuffer(Buffer *buffer, const void *data, uint32_t size) {
     CC_PROFILE(CCVKCmdBufUpdateBuffer);
-    CCVKGPUBuffer *gpuBuffer = static_cast<CCVKBuffer *>(buffer)->gpuBuffer();
-    cmdFuncCCVKUpdateBuffer(CCVKDevice::getInstance(), gpuBuffer, data, size, _gpuCommandBuffer);
+    CCVKGPUBufferView *bufferView = static_cast<CCVKBuffer *>(buffer)->gpuBufferView();
+    cmdFuncCCVKUpdateBuffer(CCVKDevice::getInstance(), bufferView, data, size, _gpuCommandBuffer);
 }
 
 void CCVKCommandBuffer::copyBuffersToTexture(const uint8_t *const *buffers, Texture *texture, const BufferTextureCopy *regions, uint32_t count) {
@@ -657,14 +656,14 @@ void CCVKCommandBuffer::pipelineBarrier(const GeneralBarrier *barrier, const Buf
             const auto *ccBarrier = static_cast<const CCVKTextureBarrier *const>(textureBarriers[i]);
             const auto *gpuBarrier = ccBarrier->gpuBarrier();
             const auto *ccTexture = static_cast<const CCVKTexture *const>(textures[i]);
-            auto *gpuTexture = ccTexture->gpuTexture();
+            auto gpuTexture = ccTexture->gpuTexture();
 
             if (ccBarrier->getInfo().type == BarrierType::SPLIT_BEGIN) {
                 signalEvent(ccTexture, gpuBarrier->srcStageMask);
             } else {
                 bool fullBarrier = ccBarrier->getInfo().type == BarrierType::FULL;
                 if (!fullBarrier) {
-                    auto key = ccstd::hash_value(gpuTexture);
+                    auto key = ccstd::hash_value(gpuTexture.get());
                     CC_ASSERT(_barrierEvents.find(ccTexture) != _barrierEvents.end());
                     VkEvent event = _barrierEvents.at(ccTexture);
                     scheduledEvents.push_back(event);
@@ -691,7 +690,7 @@ void CCVKCommandBuffer::pipelineBarrier(const GeneralBarrier *barrier, const Buf
             const auto *ccBarrier = static_cast<const CCVKBufferBarrier *const>(bufferBarriers[i]);
             const auto *gpuBarrier = ccBarrier->gpuBarrier();
             const auto *ccBuffer = static_cast<const CCVKBuffer *const>(buffers[i]);
-            auto *gpuBuffer = ccBuffer->gpuBuffer();
+            auto gpuBuffer = ccBuffer->gpuBuffer();
 
             if (ccBarrier->getInfo().type == BarrierType::SPLIT_BEGIN) {
                 signalEvent(ccBuffer, gpuBarrier->srcStageMask);
@@ -788,6 +787,5 @@ void CCVKCommandBuffer::resetQueryPool(QueryPool *queryPool) {
     vkCmdResetQueryPool(_gpuCommandBuffer->vkCommandBuffer, gpuQueryPool->vkPool, 0, queryPool->getMaxQueryObjects());
     vkQueryPool->_ids.clear();
 }
-
 } // namespace gfx
 } // namespace cc

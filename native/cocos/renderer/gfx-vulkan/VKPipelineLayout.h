@@ -27,24 +27,23 @@
 
 #include "VKStd.h"
 #include "gfx-base/GFXPipelineLayout.h"
+#include "gfx-vulkan/VKGPUObjects.h"
 
 namespace cc {
 namespace gfx {
-
-struct CCVKGPUPipelineLayout;
 
 class CC_VULKAN_API CCVKPipelineLayout final : public PipelineLayout {
 public:
     CCVKPipelineLayout();
     ~CCVKPipelineLayout() override;
 
-    inline CCVKGPUPipelineLayout *gpuPipelineLayout() const { return _gpuPipelineLayout; }
+    inline IntrusivePtr<CCVKGPUPipelineLayout> gpuPipelineLayout() const { return _gpuPipelineLayout; }
 
 protected:
     void doInit(const PipelineLayoutInfo &info) override;
     void doDestroy() override;
 
-    CCVKGPUPipelineLayout *_gpuPipelineLayout = nullptr;
+    IntrusivePtr<CCVKGPUPipelineLayout> _gpuPipelineLayout;
 };
 
 } // namespace gfx

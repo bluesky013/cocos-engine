@@ -27,15 +27,10 @@
 
 #include "VKStd.h"
 #include "gfx-base/GFXSwapchain.h"
+#include "gfx-vulkan/VKGPUObjects.h"
 
 namespace cc {
 namespace gfx {
-
-class CCVKDevice;
-class CCVKGPUDevice;
-struct CCVKGPUSwapchain;
-struct CCVKGPUSwapchain;
-class CCVKGPUSemaphorePool;
 
 class CC_VULKAN_API CCVKSwapchain final : public Swapchain {
 public:

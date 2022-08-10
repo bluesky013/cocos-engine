@@ -63,6 +63,9 @@ public:
      */
     void resize(uint32_t width, uint32_t height);
 
+    void onDestroy(void *winHandle);
+    void onResume(void *winHandle);
+
     void extractRenderCameras(ccstd::vector<Camera *> &cameras);
 
     /**
@@ -118,6 +121,8 @@ public:
     inline const ccstd::vector<IntrusivePtr<Camera>> &getCameras() const { return _cameras; }
 
 private:
+    void UpdateFramebuffer();
+
     uint32_t _width{1};
     uint32_t _height{1};
     gfx::Swapchain *_swapchain{nullptr};

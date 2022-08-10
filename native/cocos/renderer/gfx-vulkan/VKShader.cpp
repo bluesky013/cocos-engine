@@ -56,7 +56,7 @@ void initGpuShader(CCVKGPUShader* gpuShader) {
 
 } // namespace
 
-CCVKGPUShader *CCVKShader::gpuShader() const {
+IntrusivePtr<CCVKGPUShader> CCVKShader::gpuShader() const {
     if (!_gpuShader->initialized) {
         initGpuShader(_gpuShader);
     }
@@ -77,10 +77,15 @@ void CCVKShader::doInit(const ShaderInfo & /*info*/) {
 }
 
 void CCVKShader::doDestroy() {
-    if (_gpuShader) {
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuShader);
-        _gpuShader = nullptr;
-    }
+    _gpuShader = nullptr;
+//    if (_gpuShader) {
+//        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuShader);
+//        _gpuShader = nullptr;
+//    }
+}
+
+CCVKGPUShader::~CCVKGPUShader() {
+    cmdFuncCCVKDestroyShader(CCVKDevice::getInstance()->gpuDevice(), this);
 }
 
 } // namespace gfx

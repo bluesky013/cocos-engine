@@ -42,11 +42,12 @@ class CCVKGPUTransportHub;
 class CCVKGPUDescriptorHub;
 class CCVKGPUSemaphorePool;
 class CCVKGPUBarrierManager;
-class CCVKGPUFramebufferHub;
+//class CCVKGPUFramebufferHub;
 class CCVKGPUDescriptorSetHub;
 
 class CCVKGPUFencePool;
 class CCVKGPURecycleBin;
+class CCVKGPURecycleBin2;
 class CCVKGPUStagingBufferPool;
 
 class CC_VULKAN_API CCVKDevice final : public Device {
@@ -91,11 +92,12 @@ public:
     inline CCVKGPUDescriptorHub *gpuDescriptorHub() { return _gpuDescriptorHub; }
     inline CCVKGPUSemaphorePool *gpuSemaphorePool() { return _gpuSemaphorePool; }
     inline CCVKGPUBarrierManager *gpuBarrierManager() { return _gpuBarrierManager; }
-    inline CCVKGPUFramebufferHub *gpuFramebufferHub() { return _gpuFramebufferHub; }
+//    inline CCVKGPUFramebufferHub *gpuFramebufferHub() { return _gpuFramebufferHub; }
     inline CCVKGPUDescriptorSetHub *gpuDescriptorSetHub() { return _gpuDescriptorSetHub; }
 
     CCVKGPUFencePool *gpuFencePool();
-    CCVKGPURecycleBin *gpuRecycleBin();
+//    CCVKGPURecycleBin *gpuRecycleBin();
+    CCVKGPURecycleBin2 *gpuRecycleBin2();
     CCVKGPUStagingBufferPool *gpuStagingBufferPool();
     void waitAllFences();
 
@@ -137,10 +139,10 @@ protected:
 
     CCVKGPUDevice *_gpuDevice = nullptr;
     CCVKGPUContext *_gpuContext = nullptr;
-    ccstd::vector<CCVKTexture *> _depthStencilTextures;
 
     ccstd::vector<CCVKGPUFencePool *> _gpuFencePools;
-    ccstd::vector<CCVKGPURecycleBin *> _gpuRecycleBins;
+//    ccstd::vector<CCVKGPURecycleBin *> _gpuRecycleBins;
+    ccstd::vector<CCVKGPURecycleBin2 *> _gpuRecycleBins2;
     ccstd::vector<CCVKGPUStagingBufferPool *> _gpuStagingBufferPools;
 
     CCVKGPUBufferHub *_gpuBufferHub{nullptr};
@@ -148,7 +150,7 @@ protected:
     CCVKGPUDescriptorHub *_gpuDescriptorHub{nullptr};
     CCVKGPUSemaphorePool *_gpuSemaphorePool{nullptr};
     CCVKGPUBarrierManager *_gpuBarrierManager{nullptr};
-    CCVKGPUFramebufferHub *_gpuFramebufferHub{nullptr};
+//    CCVKGPUFramebufferHub *_gpuFramebufferHub{nullptr};
     CCVKGPUDescriptorSetHub *_gpuDescriptorSetHub{nullptr};
 
     ccstd::vector<const char *> _layers;

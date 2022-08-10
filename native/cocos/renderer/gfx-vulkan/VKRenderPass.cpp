@@ -69,14 +69,24 @@ void CCVKRenderPass::doInit(const RenderPassInfo & /*info*/) {
         }
     }
 
-    cmdFuncCCVKCreateRenderPass(CCVKDevice::getInstance(), _gpuRenderPass);
+    _gpuRenderPass->init();
+//    cmdFuncCCVKCreateRenderPass(CCVKDevice::getInstance(), _gpuRenderPass);
 }
 
 void CCVKRenderPass::doDestroy() {
-    if (_gpuRenderPass) {
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuRenderPass);
-        _gpuRenderPass = nullptr;
-    }
+    _gpuRenderPass = nullptr;
+//    if (_gpuRenderPass) {
+//        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuRenderPass);
+//        _gpuRenderPass = nullptr;
+//    }
+}
+
+CCVKGPURenderPass::~CCVKGPURenderPass() {
+    CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkRenderPass);
+}
+
+void CCVKGPURenderPass::init() {
+    cmdFuncCCVKCreateRenderPass(CCVKDevice::getInstance(), this);
 }
 
 } // namespace gfx

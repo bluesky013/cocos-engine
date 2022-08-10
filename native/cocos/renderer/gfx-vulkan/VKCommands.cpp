@@ -285,7 +285,7 @@ void cmdFuncCCVKCreateBuffer(CCVKDevice *device, CCVKGPUBuffer *gpuBuffer) {
                              &gpuBuffer->vkBuffer, &gpuBuffer->vmaAllocation, &res));
 
     gpuBuffer->mappedData = reinterpret_cast<uint8_t *>(res.pMappedData);
-    gpuBuffer->startOffset = 0; // we are creating one VkBuffer each for now
+    // gpuBuffer->startOffset = 0; // we are creating one VkBuffer each for now
 
     // add special access types directly from usage
     if (hasFlag(gpuBuffer->usage, BufferUsageBit::VERTEX)) gpuBuffer->renderAccessTypes.push_back(THSVS_ACCESS_VERTEX_BUFFER);
@@ -821,17 +821,18 @@ void cmdFuncCCVKCreateFramebuffer(CCVKDevice *device, CCVKGPUFramebuffer *gpuFra
         // swapchain-related framebuffers need special treatments: rebuild is needed
         // whenever a user-specified attachment or swapchain itself is changed
 
-        FramebufferListMap &fboListMap = gpuFramebuffer->swapchain->vkSwapchainFramebufferListMap;
-        auto fboListMapIter = fboListMap.find(gpuFramebuffer);
-        if (fboListMapIter != fboListMap.end() && !fboListMapIter->second.empty()) {
-            return;
-        }
+//        FramebufferListMap &fboListMap = gpuFramebuffer->swapchain->vkSwapchainFramebufferListMap;
+//        auto fboListMapIter = fboListMap.find(gpuFramebuffer);
+//        if (fboListMapIter != fboListMap.end() && !fboListMapIter->second.empty()) {
+//            return;
+//        }
         size_t swapchainImageCount = gpuFramebuffer->swapchain->swapchainImages.size();
-        if (fboListMapIter != fboListMap.end()) {
-            fboListMapIter->second.resize(swapchainImageCount);
-        } else {
-            fboListMap.emplace(std::piecewise_construct, std::forward_as_tuple(gpuFramebuffer), std::forward_as_tuple(swapchainImageCount));
-        }
+//        if (fboListMapIter != fboListMap.end()) {
+//            fboListMapIter->second.resize(swapchainImageCount);
+//        } else {
+//            fboListMap.emplace(std::piecewise_construct, std::forward_as_tuple(gpuFramebuffer), std::forward_as_tuple(swapchainImageCount));
+//        }
+        gpuFramebuffer->vkFrameBuffers.resize(swapchainImageCount);
         createInfo.renderPass = gpuFramebuffer->gpuRenderPass->vkRenderPass;
         createInfo.attachmentCount = utils::toUint(attachments.size());
         createInfo.pAttachments = attachments.data();
@@ -845,7 +846,7 @@ void cmdFuncCCVKCreateFramebuffer(CCVKDevice *device, CCVKGPUFramebuffer *gpuFra
             if (swapchainImageIndices & (1 << colorViewCount)) {
                 attachments[colorViewCount] = gpuFramebuffer->gpuDepthStencilView->swapchainVkImageViews[i];
             }
-            VK_CHECK(vkCreateFramebuffer(device->gpuDevice()->vkDevice, &createInfo, nullptr, &fboListMap[gpuFramebuffer][i]));
+            VK_CHECK(vkCreateFramebuffer(device->gpuDevice()->vkDevice, &createInfo, nullptr, &gpuFramebuffer->vkFrameBuffers[i]));
         }
     }
 }
@@ -1170,39 +1171,39 @@ void cmdFuncCCVKCreateGeneralBarrier(CCVKDevice * /*device*/, CCVKGPUGeneralBarr
     thsvsGetVulkanMemoryBarrier(gpuGeneralBarrier->barrier, &gpuGeneralBarrier->srcStageMask, &gpuGeneralBarrier->dstStageMask, &gpuGeneralBarrier->vkBarrier);
 }
 
-void cmdFuncCCVKUpdateBuffer(CCVKDevice *device, CCVKGPUBuffer *gpuBuffer, const void *buffer, uint32_t size, const CCVKGPUCommandBuffer *cmdBuffer) {
-    if (!gpuBuffer) return;
+void cmdFuncCCVKUpdateBuffer(CCVKDevice *device, CCVKGPUBufferView *bufferView, const void *buffer, uint32_t size, const CCVKGPUCommandBuffer *cmdBuffer) {
+    if (!bufferView) return;
 
     const void *dataToUpload = nullptr;
     size_t sizeToUpload = 0U;
 
-    if (hasFlag(gpuBuffer->usage, BufferUsageBit::INDIRECT)) {
+    if (hasFlag(bufferView->gpuBuffer->usage, BufferUsageBit::INDIRECT)) {
         size_t drawInfoCount = size / sizeof(DrawInfo);
         const auto *drawInfo = static_cast<const DrawInfo *>(buffer);
         if (drawInfoCount > 0) {
             if (drawInfo->indexCount) {
                 for (size_t i = 0; i < drawInfoCount; ++i) {
-                    gpuBuffer->indexedIndirectCmds[i].indexCount = drawInfo->indexCount;
-                    gpuBuffer->indexedIndirectCmds[i].instanceCount = std::max(drawInfo->instanceCount, 1U);
-                    gpuBuffer->indexedIndirectCmds[i].firstIndex = drawInfo->firstIndex;
-                    gpuBuffer->indexedIndirectCmds[i].vertexOffset = drawInfo->vertexOffset;
-                    gpuBuffer->indexedIndirectCmds[i].firstInstance = drawInfo->firstInstance;
+                    bufferView->gpuBuffer->indexedIndirectCmds[i].indexCount = drawInfo->indexCount;
+                    bufferView->gpuBuffer->indexedIndirectCmds[i].instanceCount = std::max(drawInfo->instanceCount, 1U);
+                    bufferView->gpuBuffer->indexedIndirectCmds[i].firstIndex = drawInfo->firstIndex;
+                    bufferView->gpuBuffer->indexedIndirectCmds[i].vertexOffset = drawInfo->vertexOffset;
+                    bufferView->gpuBuffer->indexedIndirectCmds[i].firstInstance = drawInfo->firstInstance;
                     drawInfo++;
                 }
-                dataToUpload = gpuBuffer->indexedIndirectCmds.data();
+                dataToUpload = bufferView->gpuBuffer->indexedIndirectCmds.data();
                 sizeToUpload = drawInfoCount * sizeof(VkDrawIndexedIndirectCommand);
-                gpuBuffer->isDrawIndirectByIndex = true;
+                bufferView->gpuBuffer->isDrawIndirectByIndex = true;
             } else {
                 for (size_t i = 0; i < drawInfoCount; ++i) {
-                    gpuBuffer->indirectCmds[i].vertexCount = drawInfo->vertexCount;
-                    gpuBuffer->indirectCmds[i].instanceCount = std::max(drawInfo->instanceCount, 1U);
-                    gpuBuffer->indirectCmds[i].firstVertex = drawInfo->firstVertex;
-                    gpuBuffer->indirectCmds[i].firstInstance = drawInfo->firstInstance;
+                    bufferView->gpuBuffer->indirectCmds[i].vertexCount = drawInfo->vertexCount;
+                    bufferView->gpuBuffer->indirectCmds[i].instanceCount = std::max(drawInfo->instanceCount, 1U);
+                    bufferView->gpuBuffer->indirectCmds[i].firstVertex = drawInfo->firstVertex;
+                    bufferView->gpuBuffer->indirectCmds[i].firstInstance = drawInfo->firstInstance;
                     drawInfo++;
                 }
-                dataToUpload = gpuBuffer->indirectCmds.data();
+                dataToUpload = bufferView->gpuBuffer->indirectCmds.data();
                 sizeToUpload = drawInfoCount * sizeof(VkDrawIndirectCommand);
-                gpuBuffer->isDrawIndirectByIndex = false;
+                bufferView->gpuBuffer->isDrawIndirectByIndex = false;
             }
         }
     } else {
@@ -1212,28 +1213,29 @@ void cmdFuncCCVKUpdateBuffer(CCVKDevice *device, CCVKGPUBuffer *gpuBuffer, const
 
     // back buffer instances update command
     uint32_t backBufferIndex = device->gpuDevice()->curBackBufferIndex;
-    if (gpuBuffer->instanceSize) {
-        device->gpuBufferHub()->record(gpuBuffer, backBufferIndex, sizeToUpload, !cmdBuffer);
+    if (bufferView->gpuBuffer->instanceSize) {
+        device->gpuBufferHub()->record(bufferView, backBufferIndex, sizeToUpload, !cmdBuffer);
         if (!cmdBuffer) {
-            uint8_t *dst = gpuBuffer->mappedData + backBufferIndex * gpuBuffer->instanceSize;
+            uint8_t *dst = bufferView->mappedData() + backBufferIndex * bufferView->gpuBuffer->instanceSize;
             memcpy(dst, dataToUpload, sizeToUpload);
             return;
         }
     }
 
-    CCVKGPUBuffer stagingBuffer;
-    stagingBuffer.size = sizeToUpload;
-    device->gpuStagingBufferPool()->alloc(&stagingBuffer);
-    memcpy(stagingBuffer.mappedData, dataToUpload, sizeToUpload);
+//    CCVKGPUBuffer stagingBuffer;
+//    stagingBuffer.size = sizeToUpload;
+//    device->gpuStagingBufferPool()->alloc(&stagingBuffer);
+    IntrusivePtr<CCVKGPUBufferView> stagingBuffer = device->gpuStagingBufferPool()->alloc(sizeToUpload);
+    memcpy(stagingBuffer->mappedData(), dataToUpload, sizeToUpload);
 
     VkBufferCopy region{
-        stagingBuffer.startOffset,
-        gpuBuffer->getStartOffset(backBufferIndex),
+        stagingBuffer->offset,
+        bufferView->getStartOffset(backBufferIndex),
         sizeToUpload,
     };
-    auto upload = [&stagingBuffer, &gpuBuffer, &region](const CCVKGPUCommandBuffer *gpuCommandBuffer) {
+    auto upload = [stagingBuffer, bufferView, &region](const CCVKGPUCommandBuffer *gpuCommandBuffer) {
 #if BARRIER_DEDUCTION_LEVEL >= BARRIER_DEDUCTION_LEVEL_BASIC
-        if (gpuBuffer->transferAccess) {
+        if (bufferView->gpuBuffer->transferAccess) {
             // guard against WAW hazard
             VkMemoryBarrier vkBarrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
             vkBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -1244,7 +1246,7 @@ void cmdFuncCCVKUpdateBuffer(CCVKDevice *device, CCVKGPUBuffer *gpuBuffer, const
                                  0, 1, &vkBarrier, 0, nullptr, 0, nullptr);
         }
 #endif
-        vkCmdCopyBuffer(gpuCommandBuffer->vkCommandBuffer, stagingBuffer.vkBuffer, gpuBuffer->vkBuffer, 1, &region);
+        vkCmdCopyBuffer(gpuCommandBuffer->vkCommandBuffer, stagingBuffer->gpuBuffer->vkBuffer, bufferView->gpuBuffer->vkBuffer, 1, &region);
     };
 
     if (cmdBuffer) {
@@ -1253,8 +1255,8 @@ void cmdFuncCCVKUpdateBuffer(CCVKDevice *device, CCVKGPUBuffer *gpuBuffer, const
         device->gpuTransportHub()->checkIn(upload);
     }
 
-    gpuBuffer->transferAccess = THSVS_ACCESS_TRANSFER_WRITE;
-    device->gpuBarrierManager()->checkIn(gpuBuffer);
+    bufferView->gpuBuffer->transferAccess = THSVS_ACCESS_TRANSFER_WRITE;
+    device->gpuBarrierManager()->checkIn(bufferView->gpuBuffer);
 }
 
 void cmdFuncCCVKCopyBuffersToTexture(CCVKDevice *device, const uint8_t *const *buffers, CCVKGPUTexture *gpuTexture,
@@ -1354,25 +1356,27 @@ void cmdFuncCCVKCopyBuffersToTexture(CCVKDevice *device, const uint8_t *const *b
                     heightOffset = static_cast<int32_t>(h);
                     stepHeight = std::min(chunkHeight, extent.height - h);
 
-                    CCVKGPUBuffer stagingBuffer;
-                    stagingBuffer.size = rowPitchSize * (stepHeight / blockSize.second);
-                    device->gpuStagingBufferPool()->alloc(&stagingBuffer, offsetAlignment);
+                    uint32_t stagingBufferSize = rowPitchSize * (stepHeight / blockSize.second);
+//                    CCVKGPUBuffer stagingBuffer;
+//                    stagingBuffer.size = rowPitchSize * (stepHeight / blockSize.second);
+//                    device->gpuStagingBufferPool()->alloc(&stagingBuffer, offsetAlignment);
+                    IntrusivePtr<CCVKGPUBufferView> stagingBuffer = device->gpuStagingBufferPool()->alloc(stagingBufferSize);
 
                     for (uint32_t j = 0; j < stepHeight; j += blockSize.second) {
-                        memcpy(stagingBuffer.mappedData + destOffset, buffers[idx] + buffOffset, destRowSize);
+                        memcpy(stagingBuffer->mappedData() + destOffset, buffers[idx] + buffOffset, destRowSize);
                         destOffset += rowPitchSize;
                         buffOffset += buffStrideSize;
                     }
 
                     VkBufferImageCopy stagingRegion;
-                    stagingRegion.bufferOffset = stagingBuffer.startOffset;
+                    stagingRegion.bufferOffset = stagingBuffer->offset;
                     stagingRegion.bufferRowLength = rowPitch;
                     stagingRegion.bufferImageHeight = stepHeight;
                     stagingRegion.imageSubresource = {gpuTexture->aspectMask, mipLevel, l + baseLayer, 1};
                     stagingRegion.imageOffset = {offset.x, offset.y + heightOffset, offset.z + static_cast<int>(depth)};
                     stagingRegion.imageExtent = {destWidth, std::min(stepHeight, destHeight - heightOffset), 1};
 
-                    vkCmdCopyBufferToImage(gpuCommandBuffer->vkCommandBuffer, stagingBuffer.vkBuffer, gpuTexture->vkImage,
+                    vkCmdCopyBufferToImage(gpuCommandBuffer->vkCommandBuffer, stagingBuffer->gpuBuffer->vkBuffer, gpuTexture->vkImage,
                                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &stagingRegion);
                 }
             }
@@ -1433,7 +1437,7 @@ void cmdFuncCCVKCopyBuffersToTexture(CCVKDevice *device, const uint8_t *const *b
     device->gpuBarrierManager()->checkIn(gpuTexture);
 }
 
-void cmdFuncCCVKCopyTextureToBuffers(CCVKDevice *device, CCVKGPUTexture *srcTexture, CCVKGPUBuffer *destBuffer,
+void cmdFuncCCVKCopyTextureToBuffers(CCVKDevice *device, CCVKGPUTexture *srcTexture, CCVKGPUBufferView *destBuffer,
                                      const BufferTextureCopy *regions, uint32_t count, const CCVKGPUCommandBuffer *gpuCommandBuffer) {
     ccstd::vector<ThsvsAccessType> &curTypes = srcTexture->currentAccessTypes;
 
@@ -1459,7 +1463,8 @@ void cmdFuncCCVKCopyTextureToBuffers(CCVKDevice *device, CCVKGPUTexture *srcText
     for (size_t i = 0U; i < count; ++i) {
         const BufferTextureCopy &region = regions[i];
         VkBufferImageCopy &stagingRegion = stagingRegions[i];
-        stagingRegion.bufferOffset = destBuffer->startOffset + offset;
+//        stagingRegion.bufferOffset = destBuffer->startOffset + offset;
+        stagingRegion.bufferOffset = destBuffer->offset + offset;
         stagingRegion.bufferRowLength = region.buffStride;
         stagingRegion.bufferImageHeight = region.buffTexHeight;
         stagingRegion.imageSubresource = {srcTexture->aspectMask, region.texSubres.mipLevel, region.texSubres.baseArrayLayer, region.texSubres.layerCount};
@@ -1473,7 +1478,8 @@ void cmdFuncCCVKCopyTextureToBuffers(CCVKDevice *device, CCVKGPUTexture *srcText
         offset += regionSize;
     }
     vkCmdCopyImageToBuffer(gpuCommandBuffer->vkCommandBuffer, srcTexture->vkImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                           destBuffer->vkBuffer, utils::toUint(stagingRegions.size()), stagingRegions.data());
+                           destBuffer->gpuBuffer->vkBuffer, utils::toUint(stagingRegions.size()), stagingRegions.data());
+//                           destBuffer->vkBuffer, utils::toUint(stagingRegions.size()), stagingRegions.data());
 
     curTypes.assign({THSVS_ACCESS_TRANSFER_READ});
     srcTexture->transferAccess = THSVS_ACCESS_TRANSFER_READ;
@@ -1562,91 +1568,190 @@ const CCVKGPUGeneralBarrier *CCVKGPURenderPass::getBarrier(size_t index, CCVKGPU
     return depthStencilAttachment.barrier ? static_cast<CCVKGeneralBarrier *>(depthStencilAttachment.barrier)->gpuBarrier() : &gpuDevice->defaultDepthStencilBarrier;
 }
 
-void CCVKGPURecycleBin::clear() {
-    for (uint32_t i = 0U; i < _count; ++i) {
-        Resource &res = _resources[i];
+//void CCVKGPURecycleBin::clear() {
+//    for (uint32_t i = 0U; i < _count; ++i) {
+//        Resource &res = _resources[i];
+//        switch (res.type) {
+//            case RecycledType::BUFFER:
+//                if (res.buffer.vkBuffer) {
+//                    vmaDestroyBuffer(_device->memoryAllocator, res.buffer.vkBuffer, res.buffer.vmaAllocation);
+//                    res.buffer.vkBuffer = VK_NULL_HANDLE;
+//                    res.buffer.vmaAllocation = VK_NULL_HANDLE;
+//                }
+//                break;
+//            case RecycledType::TEXTURE:
+//                if (res.image.vkImage) {
+//                    vmaDestroyImage(_device->memoryAllocator, res.image.vkImage, res.image.vmaAllocation);
+//                    res.image.vkImage = VK_NULL_HANDLE;
+//                    res.image.vmaAllocation = VK_NULL_HANDLE;
+//                }
+//                break;
+//            case RecycledType::TEXTURE_VIEW:
+//                if (res.vkImageView) {
+//                    vkDestroyImageView(_device->vkDevice, res.vkImageView, nullptr);
+//                    res.vkImageView = VK_NULL_HANDLE;
+//                }
+//                break;
+//            case RecycledType::FRAMEBUFFER:
+//                if (res.vkFramebuffer) {
+//                    vkDestroyFramebuffer(_device->vkDevice, res.vkFramebuffer, nullptr);
+//                    res.vkFramebuffer = VK_NULL_HANDLE;
+//                }
+//                break;
+//            case RecycledType::QUERY_POOL:
+//                if (res.gpuQueryPool) {
+//                    cmdFuncCCVKDestroyQueryPool(_device, res.gpuQueryPool);
+//                    delete res.gpuQueryPool;
+//                    res.gpuQueryPool = nullptr;
+//                }
+//                break;
+//            case RecycledType::RENDER_PASS:
+//                if (res.gpuRenderPass) {
+//                    cmdFuncCCVKDestroyRenderPass(_device, res.gpuRenderPass);
+//                    delete res.gpuRenderPass;
+//                    res.gpuRenderPass = nullptr;
+//                }
+//                break;
+//            case RecycledType::SAMPLER:
+//                if (res.gpuSampler) {
+//                    cmdFuncCCVKDestroySampler(_device, res.gpuSampler);
+//                    delete res.gpuSampler;
+//                    res.gpuSampler = nullptr;
+//                }
+//                break;
+//            case RecycledType::SHADER:
+//                if (res.gpuShader) {
+//                    cmdFuncCCVKDestroyShader(_device, res.gpuShader);
+//                    delete res.gpuShader;
+//                    res.gpuShader = nullptr;
+//                }
+//                break;
+//            case RecycledType::DESCRIPTOR_SET_LAYOUT:
+//                if (res.gpuDescriptorSetLayout) {
+//                    cmdFuncCCVKDestroyDescriptorSetLayout(_device, res.gpuDescriptorSetLayout);
+//                    delete res.gpuDescriptorSetLayout;
+//                    res.gpuDescriptorSetLayout = nullptr;
+//                }
+//                break;
+//            case RecycledType::PIPELINE_LAYOUT:
+//                if (res.gpuPipelineLayout) {
+//                    cmdFuncCCVKDestroyPipelineLayout(_device, res.gpuPipelineLayout);
+//                    delete res.gpuPipelineLayout;
+//                    res.gpuPipelineLayout = nullptr;
+//                }
+//                break;
+//            case RecycledType::PIPELINE_STATE:
+//                if (res.gpuPipelineState) {
+//                    cmdFuncCCVKDestroyPipelineState(_device, res.gpuPipelineState);
+//                    delete res.gpuPipelineState;
+//                    res.gpuPipelineState = nullptr;
+//                }
+//                break;
+//            default: break;
+//        }
+//        res.type = RecycledType::UNKNOWN;
+//    }
+//    _count = 0;
+//}
+
+void CCVKGPURecycleBin2::collect(VkEvent event) {
+    emplace(RecycledType::EVENT).vkEvent = event;
+}
+
+void CCVKGPURecycleBin2::collect(VkQueryPool pool) {
+    emplace(RecycledType::QUERY_POOL).vkQueryPool = pool;
+}
+
+void CCVKGPURecycleBin2::collect(VkImage image, VmaAllocation allocation) {
+    auto& res = emplace(RecycledType::TEXTURE);
+    res.image.vkImage = image;
+    res.image.vmaAllocation = allocation;
+}
+
+void CCVKGPURecycleBin2::collect(VkImageView imageView) {
+    emplace(RecycledType::TEXTURE_VIEW).vkImageView = imageView;
+}
+
+void CCVKGPURecycleBin2::collect(VkSampler sampler) {
+    emplace(RecycledType::SAMPLER).vkSampler = sampler;
+}
+
+void CCVKGPURecycleBin2::collect(VkBuffer buffer, VmaAllocation allocation) {
+    auto& res = emplace(RecycledType::BUFFER);
+    res.buffer.vkBuffer = buffer;
+    res.buffer.vmaAllocation = allocation;
+}
+
+void CCVKGPURecycleBin2::collect(VkPipeline pipeline) {
+    emplace(RecycledType::PIPELINE_STATE).vkPipeline = pipeline;
+}
+
+void CCVKGPURecycleBin2::collect(VkFramebuffer frameBuffer) {
+    emplace(RecycledType::FRAMEBUFFER).vkFramebuffer = frameBuffer;
+}
+
+void CCVKGPURecycleBin2::collect(VkRenderPass renderPass) {
+    emplace(RecycledType::RENDER_PASS).vkRenderPass = renderPass;
+}
+
+void CCVKGPURecycleBin2::collect(VkDescriptorSet set) {
+    emplace(RecycledType::DESCRIPTOR_SET).vkSet = set;
+}
+
+void CCVKGPURecycleBin2::clear() {
+    for (Resource &res : _resources) {
         switch (res.type) {
+            case RecycledType::EVENT:
+                if (res.vkEvent != VK_NULL_HANDLE) {
+                    vkDestroyEvent(_device->vkDevice, res.vkEvent, nullptr);
+                }
+                break;
             case RecycledType::BUFFER:
-                if (res.buffer.vkBuffer) {
+                if (res.buffer.vkBuffer != VK_NULL_HANDLE) {
                     vmaDestroyBuffer(_device->memoryAllocator, res.buffer.vkBuffer, res.buffer.vmaAllocation);
-                    res.buffer.vkBuffer = VK_NULL_HANDLE;
-                    res.buffer.vmaAllocation = VK_NULL_HANDLE;
                 }
                 break;
             case RecycledType::TEXTURE:
-                if (res.image.vkImage) {
+                if (res.image.vkImage != VK_NULL_HANDLE) {
                     vmaDestroyImage(_device->memoryAllocator, res.image.vkImage, res.image.vmaAllocation);
-                    res.image.vkImage = VK_NULL_HANDLE;
-                    res.image.vmaAllocation = VK_NULL_HANDLE;
                 }
                 break;
             case RecycledType::TEXTURE_VIEW:
-                if (res.vkImageView) {
+                if (res.vkImageView != VK_NULL_HANDLE) {
                     vkDestroyImageView(_device->vkDevice, res.vkImageView, nullptr);
-                    res.vkImageView = VK_NULL_HANDLE;
                 }
                 break;
             case RecycledType::FRAMEBUFFER:
-                if (res.vkFramebuffer) {
+                if (res.vkFramebuffer != VK_NULL_HANDLE) {
                     vkDestroyFramebuffer(_device->vkDevice, res.vkFramebuffer, nullptr);
-                    res.vkFramebuffer = VK_NULL_HANDLE;
                 }
                 break;
             case RecycledType::QUERY_POOL:
-                if (res.gpuQueryPool) {
-                    cmdFuncCCVKDestroyQueryPool(_device, res.gpuQueryPool);
-                    delete res.gpuQueryPool;
-                    res.gpuQueryPool = nullptr;
+                if (res.vkQueryPool != VK_NULL_HANDLE) {
+                    vkDestroyQueryPool(_device->vkDevice, res.vkQueryPool, nullptr);
                 }
                 break;
             case RecycledType::RENDER_PASS:
-                if (res.gpuRenderPass) {
-                    cmdFuncCCVKDestroyRenderPass(_device, res.gpuRenderPass);
-                    delete res.gpuRenderPass;
-                    res.gpuRenderPass = nullptr;
+                if (res.vkRenderPass != VK_NULL_HANDLE) {
+                    vkDestroyRenderPass(_device->vkDevice, res.vkRenderPass, nullptr);
                 }
                 break;
             case RecycledType::SAMPLER:
-                if (res.gpuSampler) {
-                    cmdFuncCCVKDestroySampler(_device, res.gpuSampler);
-                    delete res.gpuSampler;
-                    res.gpuSampler = nullptr;
-                }
-                break;
-            case RecycledType::SHADER:
-                if (res.gpuShader) {
-                    cmdFuncCCVKDestroyShader(_device, res.gpuShader);
-                    delete res.gpuShader;
-                    res.gpuShader = nullptr;
-                }
-                break;
-            case RecycledType::DESCRIPTOR_SET_LAYOUT:
-                if (res.gpuDescriptorSetLayout) {
-                    cmdFuncCCVKDestroyDescriptorSetLayout(_device, res.gpuDescriptorSetLayout);
-                    delete res.gpuDescriptorSetLayout;
-                    res.gpuDescriptorSetLayout = nullptr;
-                }
-                break;
-            case RecycledType::PIPELINE_LAYOUT:
-                if (res.gpuPipelineLayout) {
-                    cmdFuncCCVKDestroyPipelineLayout(_device, res.gpuPipelineLayout);
-                    delete res.gpuPipelineLayout;
-                    res.gpuPipelineLayout = nullptr;
+                if (res.vkSampler != VK_NULL_HANDLE) {
+                    vkDestroySampler(_device->vkDevice, res.vkSampler, nullptr);
                 }
                 break;
             case RecycledType::PIPELINE_STATE:
-                if (res.gpuPipelineState) {
-                    cmdFuncCCVKDestroyPipelineState(_device, res.gpuPipelineState);
-                    delete res.gpuPipelineState;
-                    res.gpuPipelineState = nullptr;
+                if (res.vkPipeline != VK_NULL_HANDLE) {
+                    vkDestroyPipeline(_device->vkDevice, res.vkPipeline, nullptr);
                 }
                 break;
             default: break;
         }
-        res.type = RecycledType::UNKNOWN;
     }
-    _count = 0;
+    _resources.clear();
 }
+
 
 VkSampleCountFlagBits CCVKGPUContext::getSampleCountForAttachments(Format format, VkFormat vkFormat, SampleCount sampleCount) const {
     if (sampleCount <= SampleCount::ONE) return VK_SAMPLE_COUNT_1_BIT;
@@ -1765,8 +1870,8 @@ void CCVKGPUBufferHub::flush(CCVKGPUTransportHub *transportHub) {
     bool needTransferCmds = false;
     for (auto &buffer : buffers) {
         if (buffer.second.canMemcpy) {
-            uint8_t *src = buffer.first->mappedData + buffer.second.srcIndex * buffer.first->instanceSize;
-            uint8_t *dst = buffer.first->mappedData + _device->curBackBufferIndex * buffer.first->instanceSize;
+            uint8_t *src = buffer.first->mappedData() + buffer.second.srcIndex * buffer.first->gpuBuffer->instanceSize;
+            uint8_t *dst = buffer.first->mappedData() + _device->curBackBufferIndex * buffer.first->gpuBuffer->instanceSize;
             memcpy(dst, src, buffer.second.size);
         } else {
             needTransferCmds = true;
@@ -1780,7 +1885,7 @@ void CCVKGPUBufferHub::flush(CCVKGPUTransportHub *transportHub) {
                 region.srcOffset = buffer.first->getStartOffset(buffer.second.srcIndex);
                 region.dstOffset = buffer.first->getStartOffset(_device->curBackBufferIndex);
                 region.size = buffer.second.size;
-                vkCmdCopyBuffer(gpuCommandBuffer->vkCommandBuffer, buffer.first->vkBuffer, buffer.first->vkBuffer, 1, &region);
+                vkCmdCopyBuffer(gpuCommandBuffer->vkCommandBuffer, buffer.first->gpuBuffer->vkBuffer, buffer.first->gpuBuffer->vkBuffer, 1, &region);
             }
         });
     }
@@ -1788,13 +1893,13 @@ void CCVKGPUBufferHub::flush(CCVKGPUTransportHub *transportHub) {
     buffers.clear();
 }
 
-void CCVKGPUFramebufferHub::update(CCVKGPUTexture *texture) {
-    auto &pool = _framebuffers[texture];
-    for (auto *framebuffer : pool) {
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(framebuffer);
-        cmdFuncCCVKCreateFramebuffer(CCVKDevice::getInstance(), framebuffer);
-    }
-}
+//void CCVKGPUFramebufferHub::update(CCVKGPUTexture *texture) {
+//    auto &pool = _framebuffers[texture];
+//    for (auto *framebuffer : pool) {
+//        CCVKDevice::getInstance()->gpuRecycleBin()->collect(framebuffer);
+//        cmdFuncCCVKCreateFramebuffer(CCVKDevice::getInstance(), framebuffer);
+//    }
+//}
 
 } // namespace gfx
 } // namespace cc

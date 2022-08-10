@@ -104,6 +104,31 @@ void RenderWindow::destroy() {
     _colorTextures.clear();
 }
 
+void RenderWindow::onDestroy(void *winHandle) {
+    if (_swapchain != nullptr && _swapchain->getWindowHandle() == winHandle) {
+        _swapchain->destroySurface();
+    }
+}
+
+void RenderWindow::onResume(void *winHandle) {
+    if (_swapchain == nullptr || _swapchain->getWindowHandle() != nullptr) {
+        return;
+    }
+    _swapchain->createSurface(winHandle);
+    UpdateFramebuffer();
+}
+
+void RenderWindow::UpdateFramebuffer() {
+    if (_frameBuffer != nullptr) {
+        _frameBuffer->destroy();
+        _frameBuffer->initialize({
+            _renderPass,
+            _colorTextures.get(),
+            _depthStencilTexture,
+        });
+    }
+}
+
 void RenderWindow::resize(uint32_t width, uint32_t height) {
     if (_swapchain != nullptr) {
         _swapchain->resize(width, height, ORIENTATION_MAP.at(Device::getDeviceOrientation()));
@@ -119,15 +144,7 @@ void RenderWindow::resize(uint32_t width, uint32_t height) {
         _width = width;
         _height = height;
     }
-
-    if (_frameBuffer != nullptr) {
-        _frameBuffer->destroy();
-        _frameBuffer->initialize({
-            _renderPass,
-            _colorTextures.get(),
-            _depthStencilTexture,
-        });
-    }
+    UpdateFramebuffer();
 
     for (Camera *camera : _cameras) {
         camera->resize(width, height);
