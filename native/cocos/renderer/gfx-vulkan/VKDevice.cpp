@@ -393,13 +393,15 @@ bool CCVKDevice::doInit(const DeviceInfo & /*info*/) {
 
     _gpuBufferHub = ccnew CCVKGPUBufferHub(_gpuDevice);
     _gpuTransportHub = ccnew CCVKGPUTransportHub(_gpuDevice, static_cast<CCVKQueue *>(_queue)->gpuQueue());
-    _gpuDescriptorHub = ccnew CCVKGPUDescriptorHub(_gpuDevice);
+//    _gpuDescriptorHub = ccnew CCVKGPUDescriptorHub(_gpuDevice);
+    _gpuDescriptorHub2 = ccnew CCVKGPUDescriptorHub2(_gpuDevice);
     _gpuSemaphorePool = ccnew CCVKGPUSemaphorePool(_gpuDevice);
     _gpuBarrierManager = ccnew CCVKGPUBarrierManager(_gpuDevice);
 //    _gpuFramebufferHub = ccnew CCVKGPUFramebufferHub;
     _gpuDescriptorSetHub = ccnew CCVKGPUDescriptorSetHub(_gpuDevice);
 
-    _gpuDescriptorHub->link(_gpuDescriptorSetHub);
+//    _gpuDescriptorHub->link(_gpuDescriptorSetHub);
+    _gpuDescriptorHub2->link(_gpuDescriptorSetHub);
 
     _gpuDevice->defaultSampler = new CCVKGPUSampler();
     _gpuDevice->defaultSampler->init({});
@@ -520,7 +522,8 @@ void CCVKDevice::doDestroy() {
     // CC_SAFE_DELETE(_gpuFramebufferHub)
     CC_SAFE_DELETE(_gpuDescriptorSetHub)
     CC_SAFE_DELETE(_gpuTransportHub)
-    CC_SAFE_DELETE(_gpuDescriptorHub)
+//    CC_SAFE_DELETE(_gpuDescriptorHub)
+    CC_SAFE_DELETE(_gpuDescriptorHub2)
     CC_SAFE_DELETE(_gpuBufferHub)
     CC_SAFE_DELETE(_gpuBarrierManager)
 

@@ -39,7 +39,8 @@ class CCVKGPUContext;
 
 class CCVKGPUBufferHub;
 class CCVKGPUTransportHub;
-class CCVKGPUDescriptorHub;
+//class CCVKGPUDescriptorHub;
+class CCVKGPUDescriptorHub2;
 class CCVKGPUSemaphorePool;
 class CCVKGPUBarrierManager;
 //class CCVKGPUFramebufferHub;
@@ -89,7 +90,8 @@ public:
 
     inline CCVKGPUBufferHub *gpuBufferHub() { return _gpuBufferHub; }
     inline CCVKGPUTransportHub *gpuTransportHub() { return _gpuTransportHub; }
-    inline CCVKGPUDescriptorHub *gpuDescriptorHub() { return _gpuDescriptorHub; }
+//    inline CCVKGPUDescriptorHub *gpuDescriptorHub() { return _gpuDescriptorHub; }
+    inline CCVKGPUDescriptorHub2 *gpuDescriptorHub2() { return _gpuDescriptorHub2; }
     inline CCVKGPUSemaphorePool *gpuSemaphorePool() { return _gpuSemaphorePool; }
     inline CCVKGPUBarrierManager *gpuBarrierManager() { return _gpuBarrierManager; }
 //    inline CCVKGPUFramebufferHub *gpuFramebufferHub() { return _gpuFramebufferHub; }
@@ -147,7 +149,8 @@ protected:
 
     CCVKGPUBufferHub *_gpuBufferHub{nullptr};
     CCVKGPUTransportHub *_gpuTransportHub{nullptr};
-    CCVKGPUDescriptorHub *_gpuDescriptorHub{nullptr};
+//    CCVKGPUDescriptorHub *_gpuDescriptorHub{nullptr};
+    CCVKGPUDescriptorHub2 *_gpuDescriptorHub2{nullptr};
     CCVKGPUSemaphorePool *_gpuSemaphorePool{nullptr};
     CCVKGPUBarrierManager *_gpuBarrierManager{nullptr};
 //    CCVKGPUFramebufferHub *_gpuFramebufferHub{nullptr};

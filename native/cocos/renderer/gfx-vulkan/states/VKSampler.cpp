@@ -57,7 +57,7 @@ CCVKSampler::~CCVKSampler() { // NOLINT(bugprone-exception-escape) garbage colle
 }
 
 CCVKGPUSampler::~CCVKGPUSampler() {
-    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(this);
+//    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(this);
     CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkSampler);
 }
 

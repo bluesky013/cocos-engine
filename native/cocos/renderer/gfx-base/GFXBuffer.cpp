@@ -71,9 +71,9 @@ void Buffer::destroy() {
 void Buffer::resize(uint32_t size) {
     if (size != _size) {
         uint32_t count = size / _stride;
-        doResize(size, count);
         _size = size;
         _count = count;
+        doResize(size, count);
     }
 }
 

@@ -225,7 +225,7 @@ void cmdFuncCCVKCreateTextureView(CCVKDevice *device, CCVKGPUTextureView *gpuTex
         return;
     }
 
-    device->gpuDescriptorHub()->update(gpuTextureView);
+//    device->gpuDescriptorHub()->update(gpuTextureView);
 }
 
 void cmdFuncCCVKCreateSampler(CCVKDevice *device, CCVKGPUSampler *gpuSampler) {

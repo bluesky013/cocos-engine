@@ -130,9 +130,12 @@ void CCVKTexture::doResize(uint32_t width, uint32_t height, uint32_t size) {
     _gpuTexture->memoryless = memoryless;
     _gpuTexture->init(_info, size);
 
+    CCVKGPUTextureView *old = _gpuTextureView;
     _gpuTextureView = ccnew CCVKGPUTextureView;
     _gpuTextureView->gpuTexture = _gpuTexture;
     _gpuTextureView->init(_viewInfo);
+    CCVKDevice::getInstance()->gpuDescriptorHub2()->update(old, _gpuTextureView);
+
 //    if (!_gpuTexture->memoryless) {
 //        CCVKDevice::getInstance()->getMemoryStatus().textureSize -= _size;
 //        CC_PROFILE_MEMORY_DEC(Texture, _size);
@@ -229,7 +232,7 @@ void CCVKGPUTexture::init(const TextureInfo &info, uint32_t inSize) {
 }
 
 CCVKGPUTextureView::~CCVKGPUTextureView() {
-    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(this);
+    CCVKDevice::getInstance()->gpuDescriptorHub2()->disengage(this);
     CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkImageView);
     for (auto &view : swapchainVkImageViews) {
         CCVKDevice::getInstance()->gpuRecycleBin2()->collect(view);
