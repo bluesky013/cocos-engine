@@ -889,7 +889,7 @@ void cmdFuncCCVKCreateDescriptorSetLayout(CCVKDevice *device, CCVKGPUDescriptorS
     CCVKGPUDescriptorSetPool *pool = gpuDevice->getDescriptorSetPool(gpuDescriptorSetLayout->id);
     pool->link(gpuDevice, gpuDescriptorSetLayout->maxSetsPerPool, gpuDescriptorSetLayout->vkBindings, gpuDescriptorSetLayout->vkDescriptorSetLayout);
 
-    gpuDescriptorSetLayout->defaultDescriptorSet = pool->request(0);
+    gpuDescriptorSetLayout->defaultDescriptorSet = pool->request();
 
     if (gpuDevice->useDescriptorUpdateTemplate && bindingCount) {
         const ccstd::vector<VkDescriptorSetLayoutBinding> &bindings = gpuDescriptorSetLayout->vkBindings;
@@ -1516,7 +1516,7 @@ void cmdFuncCCVKDestroyShader(CCVKGPUDevice *gpuDevice, CCVKGPUShader *gpuShader
 
 void cmdFuncCCVKDestroyDescriptorSetLayout(CCVKGPUDevice *gpuDevice, CCVKGPUDescriptorSetLayout *gpuDescriptorSetLayout) {
     if (gpuDescriptorSetLayout->defaultDescriptorSet != VK_NULL_HANDLE) {
-        gpuDevice->getDescriptorSetPool(gpuDescriptorSetLayout->id)->yield(gpuDescriptorSetLayout->defaultDescriptorSet, 0);
+        gpuDevice->getDescriptorSetPool(gpuDescriptorSetLayout->id)->yield(gpuDescriptorSetLayout->defaultDescriptorSet);
         gpuDescriptorSetLayout->defaultDescriptorSet = VK_NULL_HANDLE;
     }
 
@@ -1694,8 +1694,10 @@ void CCVKGPURecycleBin2::collect(VkRenderPass renderPass) {
     emplace(RecycledType::RENDER_PASS).vkRenderPass = renderPass;
 }
 
-void CCVKGPURecycleBin2::collect(VkDescriptorSet set) {
-    emplace(RecycledType::DESCRIPTOR_SET).vkSet = set;
+void CCVKGPURecycleBin2::collect(uint32_t layoutId, VkDescriptorSet set) {
+    auto &res = emplace(RecycledType::DESCRIPTOR_SET);
+    res.set.vkSet = set;
+    res.set.layoutId = layoutId;
 }
 
 void CCVKGPURecycleBin2::clear() {
@@ -1746,6 +1748,11 @@ void CCVKGPURecycleBin2::clear() {
                     vkDestroyPipeline(_device->vkDevice, res.vkPipeline, nullptr);
                 }
                 break;
+            case RecycledType::DESCRIPTOR_SET:
+                if (res.set.vkSet != VK_NULL_HANDLE) {
+                    auto pool = _device->getDescriptorSetPool(res.set.layoutId);
+                    pool->yield(res.set.vkSet);
+                }
             default: break;
         }
     }

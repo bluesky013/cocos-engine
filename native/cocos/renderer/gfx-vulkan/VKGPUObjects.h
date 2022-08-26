@@ -360,6 +360,26 @@ struct CCVKGPUDescriptorSet : public RefCounted {
     CCVKGPUDescriptorSet() = default;
     ~CCVKGPUDescriptorSet();
 
+    void update(CCVKGPUBufferView *old, CCVKGPUBufferView *newBuffer)
+    {
+        auto iter = std::find_if(gpuDescriptors.begin(), gpuDescriptors.end(), [old](const CCVKGPUDescriptor &descriptor) -> bool {
+            return hasFlag(DESCRIPTOR_BUFFER_TYPE, descriptor.type) && descriptor.gpuBufferView.get() == old;
+            });
+        if (iter != gpuDescriptors.end()) {
+            iter->gpuBufferView = newBuffer;
+        }
+    }
+
+    void update(CCVKGPUTextureView *old, CCVKGPUTextureView *newTexture)
+    {
+        auto iter = std::find_if(gpuDescriptors.begin(), gpuDescriptors.end(), [old](const CCVKGPUDescriptor &descriptor) -> bool {
+            return hasFlag(DESCRIPTOR_TEXTURE_TYPE, descriptor.type) && descriptor.gpuTextureView.get() == old;
+        });
+        if (iter != gpuDescriptors.end()) {
+            iter->gpuTextureView = newTexture;
+        }
+    }
+
     ccstd::vector<CCVKGPUDescriptor> gpuDescriptors;
 
     // references
@@ -367,10 +387,23 @@ struct CCVKGPUDescriptorSet : public RefCounted {
 
     struct Instance {
         VkDescriptorSet vkDescriptorSet = VK_NULL_HANDLE;
-        ccstd::vector<CCVKDescriptorInfo> descriptorInfos;
         ccstd::vector<VkWriteDescriptorSet> descriptorUpdateEntries;
     };
-    ccstd::vector<Instance> instances; // per swapchain image
+    ccstd::vector<CCVKDescriptorInfo> descriptorInfos;
+    ccstd::vector<Instance> instances; // per swapchain image [per inflight frame]
+    mutable uint32_t currentIndex = 0;
+
+    VkDescriptorSet getSet() const {
+        return instances[currentIndex].vkDescriptorSet;
+    }
+
+    const ccstd::vector<VkWriteDescriptorSet> &getEntries() const {
+        return instances[currentIndex].descriptorUpdateEntries;
+    }
+
+    void swap() const {
+        currentIndex = (currentIndex + 1) % instances.size();
+    }
 
     uint32_t layoutID = 0U;
 };
@@ -581,23 +614,23 @@ private:
 class CCVKGPUDescriptorSetPool final {
 public:
     ~CCVKGPUDescriptorSetPool() {
-        for (ccstd::vector<VkDescriptorSet> &market : _fleaMarkets) {
-            for (VkDescriptorSet set : market) {
-                for (DescriptorSetPool &pool : _pools) {
-                    if (pool.activeSets.count(set)) {
-                        pool.activeSets.erase(set);
-                        break;
-                    }
-                }
-            }
-        }
+//        for (ccstd::vector<VkDescriptorSet> &market : _fleaMarkets) {
+//            for (VkDescriptorSet set : market) {
+//                for (DescriptorSetPool &pool : _pools) {
+//                    if (pool.activeSets.count(set)) {
+//                        pool.activeSets.erase(set);
+//                        break;
+//                    }
+//                }
+//            }
+//        }
 
-        size_t leakedSetCount = 0U;
-        for (DescriptorSetPool &pool : _pools) {
-            leakedSetCount += pool.activeSets.size();
-            vkDestroyDescriptorPool(_device->vkDevice, pool.vkPool, nullptr);
+//        size_t leakedSetCount = 0U;
+        for (auto pool : _pools) {
+//            leakedSetCount += pool.activeSets.size();
+            vkDestroyDescriptorPool(_device->vkDevice, pool, nullptr);
         }
-        if (leakedSetCount) CC_LOG_DEBUG("Leaked %d descriptor sets.", leakedSetCount);
+//        if (leakedSetCount) CC_LOG_DEBUG("Leaked %d descriptor sets.", leakedSetCount);
 
         _pools.clear();
     }
@@ -606,7 +639,7 @@ public:
         _device = device;
         _maxSetsPerPool = maxSetsPerPool;
         _setLayouts.insert(_setLayouts.cbegin(), _maxSetsPerPool, setLayout);
-        _fleaMarkets.resize(device->backBufferCount);
+//        _fleaMarkets.resize(device->backBufferCount);
 
         ccstd::unordered_map<VkDescriptorType, uint32_t> typeMap;
         for (const auto &vkBinding : bindings) {
@@ -624,27 +657,43 @@ public:
         }
     }
 
-    VkDescriptorSet request(uint32_t backBufferIndex) {
+    VkDescriptorSet popBack() {
         VkDescriptorSet output = VK_NULL_HANDLE;
-
-        if (!_fleaMarkets[backBufferIndex].empty()) {
-            output = _fleaMarkets[backBufferIndex].back();
-            _fleaMarkets[backBufferIndex].pop_back();
+        if (!_freeList.empty()) {
+            output = _freeList.back();
+            _freeList.pop_back();
             return output;
         }
+        return VK_NULL_HANDLE;
+    }
 
-        size_t size = _pools.size();
-        uint32_t idx = 0U;
-        for (; idx < size; idx++) {
-            if (!_pools[idx].freeSets.empty()) {
-                output = _pools[idx].freeSets.back();
-                _pools[idx].freeSets.pop_back();
-                _pools[idx].activeSets.insert(output);
-                return output;
-            }
+    VkDescriptorSet request(/*uint32_t backBufferIndex*/) {
+        //        if (!_fleaMarkets[backBufferIndex].empty()) {
+        //            output = _fleaMarkets[backBufferIndex].back();
+        //            _fleaMarkets[backBufferIndex].pop_back();
+        //            return output;
+        //        }
+        if (_freeList.empty()) {
+            requestPool();
         }
+        return popBack();
+    }
 
-        if (idx >= size) {
+    void requestPool() {
+
+//        size_t size = _pools.size();
+//        uint32_t idx = 0U;
+//        for (; idx < size; idx++) {
+//            if (!_pools[idx].freeSets.empty()) {
+//                output = _pools[idx].freeSets.back();
+//                _pools[idx].freeSets.pop_back();
+//                _pools[idx].activeSets.insert(output);
+//                return output;
+//            }
+//        }
+
+//        if (idx >= size) {
+
             VkDescriptorPoolCreateInfo createInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
             createInfo.maxSets = _maxSetsPerPool;
             createInfo.poolSizeCount = utils::toUint(_poolSizes.size());
@@ -652,45 +701,42 @@ public:
 
             VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
             VK_CHECK(vkCreateDescriptorPool(_device->vkDevice, &createInfo, nullptr, &descriptorPool));
-            _pools.push_back({descriptorPool});
+            _pools.push_back(descriptorPool);
 
-            _pools[idx].freeSets.resize(_maxSetsPerPool);
+//            _pools[idx].freeSets.resize(_maxSetsPerPool);
+            std::vector<VkDescriptorSet> sets(_maxSetsPerPool, VK_NULL_HANDLE);
             VkDescriptorSetAllocateInfo info{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
             info.pSetLayouts = _setLayouts.data();
             info.descriptorSetCount = _maxSetsPerPool;
             info.descriptorPool = descriptorPool;
-            VK_CHECK(vkAllocateDescriptorSets(_device->vkDevice, &info, _pools[idx].freeSets.data()));
-        }
+            VK_CHECK(vkAllocateDescriptorSets(_device->vkDevice, &info, sets.data()));
+//        }
+            _freeList.insert(_freeList.end(), sets.begin(), sets.end());
 
-        output = _pools[idx].freeSets.back();
-        _pools[idx].freeSets.pop_back();
-        _pools[idx].activeSets.insert(output);
-        return output;
+//        output = _pools[idx].freeSets.back();
+//        _pools[idx].freeSets.pop_back();
+//        _pools[idx].activeSets.insert(output);
+//        return output;
     }
 
-    void yield(VkDescriptorSet set, uint32_t backBufferIndex) {
-        bool found = false;
-        for (DescriptorSetPool &pool : _pools) {
-            if (pool.activeSets.count(set)) {
-                found = true;
-                break;
-            }
-        }
-        CC_ASSERT(found); // Wrong descriptor set layout to yield?
-        _fleaMarkets[backBufferIndex].push_back(set);
+    void yield(VkDescriptorSet set/*, uint32_t backBufferIndex*/) {
+//        bool found = false;
+//        for (DescriptorSetPool &pool : _pools) {
+//            if (pool.activeSets.count(set)) {
+//                found = true;
+//                break;
+//            }
+//        }
+//        CC_ASSERT(found); // Wrong descriptor set layout to yield?
+//        _fleaMarkets[backBufferIndex].push_back(set);
+        _freeList.emplace_back(set);
     }
 
 private:
     CCVKGPUDevice *_device = nullptr;
 
-    struct DescriptorSetPool {
-        VkDescriptorPool vkPool = VK_NULL_HANDLE;
-        ccstd::unordered_set<VkDescriptorSet> activeSets;
-        ccstd::vector<VkDescriptorSet> freeSets;
-    };
-    ccstd::vector<DescriptorSetPool> _pools;
-
-    ccstd::vector<ccstd::vector<VkDescriptorSet>> _fleaMarkets; // per back buffer
+    ccstd::vector<VkDescriptorPool> _pools;
+    ccstd::vector<VkDescriptorSet> _freeList;
 
     ccstd::vector<VkDescriptorPoolSize> _poolSizes;
     ccstd::vector<VkDescriptorSetLayout> _setLayouts;
@@ -957,12 +1003,13 @@ public:
 
 private:
     void update(const CCVKGPUDescriptorSet *gpuDescriptorSet) {
-        const CCVKGPUDescriptorSet::Instance &instance = gpuDescriptorSet->instances[_device->curBackBufferIndex];
+//        const CCVKGPUDescriptorSet::Instance &instance = gpuDescriptorSet->instances[_device->curBackBufferIndex];
+        gpuDescriptorSet->swap();
         if (gpuDescriptorSet->gpuLayout->vkDescriptorUpdateTemplate) {
-            _updateFn(_device->vkDevice, instance.vkDescriptorSet,
-                      gpuDescriptorSet->gpuLayout->vkDescriptorUpdateTemplate, instance.descriptorInfos.data());
+            _updateFn(_device->vkDevice, gpuDescriptorSet->getSet(),
+                      gpuDescriptorSet->gpuLayout->vkDescriptorUpdateTemplate, gpuDescriptorSet->descriptorInfos.data());
         } else {
-            const ccstd::vector<VkWriteDescriptorSet> &entries = instance.descriptorUpdateEntries;
+            const ccstd::vector<VkWriteDescriptorSet> &entries = gpuDescriptorSet->getEntries();
             vkUpdateDescriptorSets(_device->vkDevice, utils::toUint(entries.size()), entries.data(), 0, nullptr);
         }
     }
@@ -1161,6 +1208,74 @@ private:
     CCVKGPUDescriptorSetHub *_descriptorSetHub = nullptr;
 };
 
+class CCVKGPUDescriptorHub2 final {
+public:
+    explicit CCVKGPUDescriptorHub2(CCVKGPUDevice * /*device*/) {
+    }
+
+    void link(CCVKGPUDescriptorSetHub *descriptorSetHub) {
+        _descriptorSetHub = descriptorSetHub;
+    }
+
+    void connect(CCVKGPUDescriptorSet *set, const CCVKGPUBufferView *buffer) {
+        _buffers[buffer].insert(set);
+    }
+    void connect(CCVKGPUDescriptorSet *set, const CCVKGPUTextureView *texture) {
+        _textures[texture].insert(set);
+    }
+
+    void update(CCVKGPUBufferView* oldBuffer, CCVKGPUBufferView* newBuffer) {
+        auto iter = _buffers.find(oldBuffer);
+        if (iter != _buffers.end()) {
+            for (auto& set : iter->second) {
+                set->update(oldBuffer, newBuffer);
+                _descriptorSetHub->record(set);
+            }
+        }
+    }
+
+    void update(CCVKGPUTextureView* oldTexture, CCVKGPUTextureView* newTexture) {
+        auto iter = _textures.find(oldTexture);
+        if (iter != _textures.end()) {
+            for (auto& set : iter->second) {
+                set->update(oldTexture, newTexture);
+                _descriptorSetHub->record(set);
+            }
+        }
+    }
+
+    void disengage(const CCVKGPUBufferView *buffer) {
+        auto iter = _buffers.find(buffer);
+        if (iter != _buffers.end()) {
+            _buffers.erase(iter);
+        }
+    }
+
+    void disengage(const CCVKGPUTextureView *texture) {
+        auto iter = _textures.find(texture);
+        if (iter != _textures.end()) {
+            _textures.erase(iter);
+        }
+    }
+
+    void disengage(CCVKGPUDescriptorSet *set, const CCVKGPUBufferView *buffer) {
+        auto iter = _buffers.find(buffer);
+        if (iter == _buffers.end()) return;
+        iter->second.erase(set);
+    }
+
+    void disengage(CCVKGPUDescriptorSet *set, const CCVKGPUTextureView *texture) {
+        auto iter = _textures.find(texture);
+        if (iter == _textures.end()) return;
+        iter->second.erase(set);
+    }
+
+private:
+    ccstd::unordered_map<const CCVKGPUBufferView *, std::unordered_set<CCVKGPUDescriptorSet *>> _buffers;
+    ccstd::unordered_map<const CCVKGPUTextureView *, std::unordered_set<CCVKGPUDescriptorSet *>> _textures;
+
+    CCVKGPUDescriptorSetHub *_descriptorSetHub = nullptr;
+};
 /**
  * Recycle bin for GPU resources, clears after vkDeviceWaitIdle every frame.
  * All the destroy events will be postponed to that time.
@@ -1316,7 +1431,7 @@ public:
     void collect(VkPipeline pipeline);
     void collect(VkFramebuffer frameBuffer);
     void collect(VkRenderPass renderPass);
-    void collect(VkDescriptorSet set);
+    void collect(uint32_t layoutId, VkDescriptorSet set);
 
     void clear();
 
@@ -1347,18 +1462,24 @@ private:
         VkImage vkImage {VK_NULL_HANDLE};
         VmaAllocation vmaAllocation {VK_NULL_HANDLE};
     };
+    struct Set {
+        Set() noexcept = default;
+        ~Set() noexcept = default;
+        VkDescriptorSet vkSet {VK_NULL_HANDLE};
+        uint32_t layoutId {0};
+    };
 
     struct Resource {
         RecycledType type = RecycledType::UNKNOWN;
         Buffer buffer;
         Image image;
+        Set set;
         VkImageView vkImageView;
         VkFramebuffer vkFramebuffer;
         VkQueryPool vkQueryPool;
         VkRenderPass vkRenderPass;
         VkSampler vkSampler;
         VkPipeline vkPipeline;
-        VkDescriptorSet vkSet;
         VkEvent vkEvent;
     };
 

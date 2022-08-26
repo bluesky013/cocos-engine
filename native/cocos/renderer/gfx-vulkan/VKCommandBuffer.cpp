@@ -378,9 +378,9 @@ void CCVKCommandBuffer::nextSubpass() {
 void CCVKCommandBuffer::draw(const DrawInfo &info) {
     CC_PROFILE(CCVKCmdBufDraw);
     if (_firstDirtyDescriptorSet < _curGPUDescriptorSets.size()) {
+        CC_PROFILE(CCVKCmdBufDrawBindDescriptorSets);
         bindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS);
     }
-
     const auto gpuIndirectBuffer = _curGPUInputAssember->gpuIndirectBuffer;
 
     if (gpuIndirectBuffer) {
@@ -579,8 +579,8 @@ void CCVKCommandBuffer::bindDescriptorSets(VkPipelineBindPoint bindPoint) {
     uint32_t dirtyDescriptorSetCount = descriptorSetCount - _firstDirtyDescriptorSet;
     for (uint32_t i = _firstDirtyDescriptorSet; i < descriptorSetCount; ++i) {
         if (_curGPUDescriptorSets[i]) {
-            const CCVKGPUDescriptorSet::Instance &instance = _curGPUDescriptorSets[i]->instances[gpuDevice->curBackBufferIndex];
-            _curVkDescriptorSets[i] = instance.vkDescriptorSet;
+//            const CCVKGPUDescriptorSet::Instance &instance = _curGPUDescriptorSets[i]->instances[gpuDevice->curBackBufferIndex];
+            _curVkDescriptorSets[i] = _curGPUDescriptorSets[i]->getSet();
         } else {
             _curVkDescriptorSets[i] = pipelineLayout->setLayouts[i]->defaultDescriptorSet;
         }

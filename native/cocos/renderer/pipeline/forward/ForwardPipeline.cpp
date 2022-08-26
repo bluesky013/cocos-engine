@@ -110,16 +110,19 @@ void ForwardPipeline::render(const ccstd::vector<scene::Camera *> &cameras) {
     ensureEnoughSize(cameras);
     decideProfilerCamera(cameras);
 
-    for (auto *camera : cameras) {
-        validPunctualLightsCulling(this, camera);
-        sceneCulling(this, camera);
-        for (auto const &flow : _flows) {
-            flow->render(camera);
+    {
+        CC_PROFILE(FrameGraphExecute);
+        for (auto *camera : cameras) {
+            validPunctualLightsCulling(this, camera);
+            sceneCulling(this, camera);
+            for (auto const &flow : _flows) {
+                flow->render(camera);
+            }
+            _fg.compile();
+            _fg.execute();
+            _fg.reset();
+            _pipelineUBO->incCameraUBOOffset();
         }
-        _fg.compile();
-        _fg.execute();
-        _fg.reset();
-        _pipelineUBO->incCameraUBOOffset();
     }
 
     if (enableOcclusionQuery) {
