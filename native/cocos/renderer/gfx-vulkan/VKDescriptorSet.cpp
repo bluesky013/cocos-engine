@@ -215,7 +215,7 @@ void CCVKDescriptorSet::update() {
                             descriptorInfo.buffer.offset = bufferView->offset;
                             descriptorInfo.buffer.range = bufferView->range;
 
-                                if (binding.gpuBufferView) {
+                            if (binding.gpuBufferView) {
                                 descriptorHub2->disengage(_gpuDescriptorSet, binding.gpuBufferView);
 //                                descriptorHub->disengage(_gpuDescriptorSet, binding.gpuBufferView, &descriptorInfo.buffer);
                             }

@@ -1360,7 +1360,7 @@ void cmdFuncCCVKCopyBuffersToTexture(CCVKDevice *device, const uint8_t *const *b
 //                    CCVKGPUBuffer stagingBuffer;
 //                    stagingBuffer.size = rowPitchSize * (stepHeight / blockSize.second);
 //                    device->gpuStagingBufferPool()->alloc(&stagingBuffer, offsetAlignment);
-                    IntrusivePtr<CCVKGPUBufferView> stagingBuffer = device->gpuStagingBufferPool()->alloc(stagingBufferSize);
+                    IntrusivePtr<CCVKGPUBufferView> stagingBuffer = device->gpuStagingBufferPool()->alloc(stagingBufferSize, offsetAlignment);
 
                     for (uint32_t j = 0; j < stepHeight; j += blockSize.second) {
                         memcpy(stagingBuffer->mappedData() + destOffset, buffers[idx] + buffOffset, destRowSize);

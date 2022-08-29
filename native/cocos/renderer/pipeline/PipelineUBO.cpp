@@ -440,13 +440,13 @@ void PipelineUBO::activate(gfx::Device *device, RenderPipeline *pipeline) {
     _ubos.push_back(_cameraBuffer);
     _cameraUBOs.resize(_alignedCameraUBOSize / sizeof(float));
 
-    auto *cameraUBO = _device->createBuffer({
-        _cameraBuffer,
-        0,
-        UBOCamera::SIZE,
-    });
-    descriptorSet->bindBuffer(UBOCamera::BINDING, cameraUBO);
-    _ubos.push_back(cameraUBO);
+//    auto *cameraUBO = _device->createBuffer({
+//        _cameraBuffer,
+//        0,
+//        UBOCamera::SIZE,
+//    });
+    descriptorSet->bindBuffer(UBOCamera::BINDING, _cameraBuffer);
+//    _ubos.push_back(cameraUBO);
 
     auto *shadowUBO = _device->createBuffer({
         gfx::BufferUsageBit::UNIFORM | gfx::BufferUsageBit::TRANSFER_DST,

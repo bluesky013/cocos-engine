@@ -110,9 +110,11 @@ void CCVKBuffer::doResize(uint32_t size, uint32_t count) {
     _gpuBuffer->count = _count;
     _gpuBuffer->init();
 
+    auto old = _gpuBufferView;
     _gpuBufferView = ccnew CCVKGPUBufferView;
     _gpuBufferView->gpuBuffer = _gpuBuffer;
     createBufferView();
+    CCVKDevice::getInstance()->gpuDescriptorHub2()->update(old, _gpuBufferView);
 
 //    CCVKDevice::getInstance()->gpuDescriptorHub2()->update(old, _gpuBufferView);
 

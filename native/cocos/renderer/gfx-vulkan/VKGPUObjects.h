@@ -334,10 +334,29 @@ struct CCVKGPUShader : public RefCounted {
 };
 
 struct CCVKGPUInputAssembler : public RefCounted {
+    CCVKGPUInputAssembler() = default;
+    ~CCVKGPUInputAssembler();
+
+    void update(CCVKGPUBufferView *oldBuffer, CCVKGPUBufferView *newBuffer)
+    {
+        for (uint32_t i = 0; i < gpuVertexBuffers.size(); ++i) {
+            if (gpuVertexBuffers[i].get() == oldBuffer) {
+                gpuVertexBuffers[i] = newBuffer;
+                vertexBuffers[i] = newBuffer->gpuBuffer->vkBuffer;
+            }
+        }
+        if (gpuIndexBuffer.get() == oldBuffer) {
+            gpuIndexBuffer = newBuffer;
+        }
+        if (gpuIndirectBuffer.get() == oldBuffer) {
+            gpuIndirectBuffer = newBuffer;
+        }
+    }
+
     AttributeList attributes;
     ccstd::vector<IntrusivePtr<CCVKGPUBufferView>> gpuVertexBuffers;
     IntrusivePtr<CCVKGPUBufferView> gpuIndexBuffer;
-    IntrusivePtr<CCVKGPUBufferView> gpuIndirectBuffer = nullptr;
+    IntrusivePtr<CCVKGPUBufferView> gpuIndirectBuffer;
     ccstd::vector<VkBuffer> vertexBuffers;
     ccstd::vector<VkDeviceSize> vertexBufferOffsets;
 };
@@ -360,21 +379,28 @@ struct CCVKGPUDescriptorSet : public RefCounted {
     CCVKGPUDescriptorSet() = default;
     ~CCVKGPUDescriptorSet();
 
-    void update(CCVKGPUBufferView *old, CCVKGPUBufferView *newBuffer) {
-        auto iter = std::find_if(gpuDescriptors.begin(), gpuDescriptors.end(), [old](const CCVKGPUDescriptor &descriptor) -> bool {
-            return hasFlag(DESCRIPTOR_BUFFER_TYPE, descriptor.type) && descriptor.gpuBufferView.get() == old;
-            });
-        if (iter != gpuDescriptors.end()) {
-            iter->gpuBufferView = newBuffer;
+    void update(CCVKGPUBufferView *oldBuffer, CCVKGPUBufferView *newBuffer)
+    {
+        for (uint32_t i = 0; i < gpuDescriptors.size(); ++i) {
+            auto& desc = gpuDescriptors[i];
+            auto& descInfo = descriptorInfos[i];
+            if (hasFlag(DESCRIPTOR_BUFFER_TYPE, desc.type) && desc.gpuBufferView.get() == oldBuffer) {
+                desc.gpuBufferView = newBuffer;
+                descInfo.buffer.buffer = newBuffer->gpuBuffer->vkBuffer;
+                descInfo.buffer.offset = newBuffer->offset;
+                descInfo.buffer.range = newBuffer->range;
+            }
         }
     }
 
     void update(CCVKGPUTextureView *old, CCVKGPUTextureView *newTexture) {
-        auto iter = std::find_if(gpuDescriptors.begin(), gpuDescriptors.end(), [old](const CCVKGPUDescriptor &descriptor) -> bool {
-            return hasFlag(DESCRIPTOR_TEXTURE_TYPE, descriptor.type) && descriptor.gpuTextureView.get() == old;
-        });
-        if (iter != gpuDescriptors.end()) {
-            iter->gpuTextureView = newTexture;
+        for (uint32_t i = 0; i < gpuDescriptors.size(); ++i) {
+            auto& desc = gpuDescriptors[i];
+            auto& descInfo = descriptorInfos[i];
+            if (hasFlag(DESCRIPTOR_TEXTURE_TYPE, desc.type) && desc.gpuTextureView.get() == old) {
+                desc.gpuTextureView = newTexture;
+                descInfo.image.imageView = newTexture->vkImageView;
+            }
         }
     }
 
@@ -390,6 +416,7 @@ struct CCVKGPUDescriptorSet : public RefCounted {
     ccstd::vector<CCVKDescriptorInfo> descriptorInfos;
     ccstd::vector<Instance> instances; // per swapchain image [per inflight frame]
     mutable uint32_t currentIndex = 0;
+    mutable bool swapped = true;
 
     VkDescriptorSet getSet() const {
         return instances[currentIndex].vkDescriptorSet;
@@ -401,6 +428,11 @@ struct CCVKGPUDescriptorSet : public RefCounted {
 
     void swap() const {
         currentIndex = (currentIndex + 1) % instances.size();
+        swapped = true;
+    }
+
+    void reset() const {
+        swapped = false;
     }
 
     uint32_t layoutID = 0U;
@@ -960,7 +992,7 @@ class CCVKGPUDescriptorSetHub final {
 public:
     explicit CCVKGPUDescriptorSetHub(CCVKGPUDevice *device)
     : _device(device) {
-        _setsToBeUpdated.resize(device->backBufferCount);
+//        _setsToBeUpdated.resize(device->backBufferCount);
         if (device->minorVersion > 0) {
             _updateFn = vkUpdateDescriptorSetWithTemplate;
         } else {
@@ -970,39 +1002,47 @@ public:
 
     void record(const CCVKGPUDescriptorSet *gpuDescriptorSet) {
         update(gpuDescriptorSet);
-        for (uint32_t i = 0U; i < _device->backBufferCount; ++i) {
-            if (i == _device->curBackBufferIndex) {
-                _setsToBeUpdated[i].erase(gpuDescriptorSet);
-            } else {
-                _setsToBeUpdated[i].insert(gpuDescriptorSet);
-            }
-        }
+//        for (uint32_t i = 0U; i < _device->backBufferCount; ++i) {
+//            if (i == _device->curBackBufferIndex) {
+//                _setsToBeUpdated[i].erase(gpuDescriptorSet);
+//            } else {
+//                _setsToBeUpdated[i].insert(gpuDescriptorSet);
+//            }
+//        }
+        _setsSwapped.insert(gpuDescriptorSet);
     }
 
     void erase(CCVKGPUDescriptorSet *gpuDescriptorSet) {
-        for (uint32_t i = 0U; i < _device->backBufferCount; ++i) {
-            if (_setsToBeUpdated[i].count(gpuDescriptorSet)) {
-                _setsToBeUpdated[i].erase(gpuDescriptorSet);
-            }
-        }
+//        for (uint32_t i = 0U; i < _device->backBufferCount; ++i) {
+//            if (_setsToBeUpdated[i].count(gpuDescriptorSet)) {
+//                _setsToBeUpdated[i].erase(gpuDescriptorSet);
+//            }
+//        }
     }
 
     void flush() {
-        DescriptorSetList &sets = _setsToBeUpdated[_device->curBackBufferIndex];
-        for (const auto *set : sets) {
-            update(set);
+//        DescriptorSetList &sets = _setsToBeUpdated[_device->curBackBufferIndex];
+//        for (const auto *set : sets) {
+//            update(set);
+//        }
+//        sets.clear();
+        for (auto &set : _setsSwapped) {
+            set->reset();
         }
-        sets.clear();
+        _setsSwapped.clear();
     }
 
     void updateBackBufferCount(uint32_t backBufferCount) {
-        _setsToBeUpdated.resize(backBufferCount);
+//        _setsToBeUpdated.resize(backBufferCount);
     }
 
 private:
     void update(const CCVKGPUDescriptorSet *gpuDescriptorSet) {
 //        const CCVKGPUDescriptorSet::Instance &instance = gpuDescriptorSet->instances[_device->curBackBufferIndex];
-        gpuDescriptorSet->swap();
+        if (!gpuDescriptorSet->swapped) {
+            gpuDescriptorSet->swap();
+        }
+
         if (gpuDescriptorSet->gpuLayout->vkDescriptorUpdateTemplate) {
             _updateFn(_device->vkDevice, gpuDescriptorSet->getSet(),
                       gpuDescriptorSet->gpuLayout->vkDescriptorUpdateTemplate, gpuDescriptorSet->descriptorInfos.data());
@@ -1012,10 +1052,11 @@ private:
         }
     }
 
-    using DescriptorSetList = ccstd::unordered_set<const CCVKGPUDescriptorSet *>;
+//    using DescriptorSetList = ccstd::unordered_set<const CCVKGPUDescriptorSet *>;
 
     CCVKGPUDevice *_device = nullptr;
-    ccstd::vector<DescriptorSetList> _setsToBeUpdated;
+//    ccstd::vector<DescriptorSetList> _setsToBeUpdated;
+    ccstd::unordered_set<const CCVKGPUDescriptorSet *> _setsSwapped;
     PFN_vkUpdateDescriptorSetWithTemplate _updateFn = nullptr;
 };
 
@@ -1225,12 +1266,28 @@ public:
         _descriptorSetHub->record(set);
     }
 
+    void connect(CCVKGPUInputAssembler *ia, const CCVKGPUBufferView *buffer) {
+        _ias[buffer].insert(ia);
+    }
+
     void update(CCVKGPUBufferView* oldBuffer, CCVKGPUBufferView* newBuffer) {
-        auto iter = _buffers.find(oldBuffer);
-        if (iter != _buffers.end()) {
-            for (auto& set : iter->second) {
-                set->update(oldBuffer, newBuffer);
-                _descriptorSetHub->record(set);
+        {
+            auto iter = _buffers.find(oldBuffer);
+            if (iter != _buffers.end()) {
+                for (auto &set : iter->second) {
+                    set->update(oldBuffer, newBuffer);
+                    connect(set, newBuffer);
+                }
+            }
+        }
+
+        {
+            auto iter = _ias.find(oldBuffer);
+            if (iter != _ias.end()) {
+                for (auto &ia : iter->second) {
+                    ia->update(oldBuffer, newBuffer);
+                    connect(ia, newBuffer);
+                }
             }
         }
     }
@@ -1240,7 +1297,7 @@ public:
         if (iter != _textures.end()) {
             for (auto& set : iter->second) {
                 set->update(oldTexture, newTexture);
-                _descriptorSetHub->record(set);
+                connect(set, newTexture);
             }
         }
     }
@@ -1271,8 +1328,15 @@ public:
         iter->second.erase(set);
     }
 
+    void disengage(CCVKGPUInputAssembler *set, const CCVKGPUBufferView *buffer) {
+        auto iter = _ias.find(buffer);
+        if (iter == _ias.end()) return;
+        iter->second.erase(set);
+    }
+
 private:
     ccstd::unordered_map<const CCVKGPUBufferView *, std::unordered_set<CCVKGPUDescriptorSet *>> _buffers;
+    ccstd::unordered_map<const CCVKGPUBufferView *, std::unordered_set<CCVKGPUInputAssembler *>> _ias;
     ccstd::unordered_map<const CCVKGPUTextureView *, std::unordered_set<CCVKGPUDescriptorSet *>> _textures;
 
     CCVKGPUDescriptorSetHub *_descriptorSetHub = nullptr;
