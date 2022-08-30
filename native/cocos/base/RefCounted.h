@@ -91,7 +91,7 @@ protected:
     RefCounted();
 
     /// count of references
-    unsigned int _referenceCount{0};
+    mutable unsigned int _referenceCount{0};
 
     // Memory leak diagnostic data (only included when CC_REF_LEAK_DETECTION is defined and its value isn't zero)
 #if CC_REF_LEAK_DETECTION

@@ -44,7 +44,7 @@ protected:
     void doInit(const RenderPassInfo &info) override;
     void doDestroy() override;
 
-    GLES3GPURenderPass *_gpuRenderPass = nullptr;
+    IntrusivePtr<GLES3GPURenderPass> _gpuRenderPass = nullptr;
 };
 
 } // namespace gfx

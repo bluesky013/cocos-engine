@@ -26,12 +26,12 @@
 #pragma once
 
 #include "GLES3Std.h"
+#include "gfx-gles3/GLES3GPUObjects.h"
 #include "gfx-base/GFXInputAssembler.h"
 
 namespace cc {
 namespace gfx {
 
-struct GLES3GPUInputAssembler;
 class GLES3CmdDraw;
 
 class CC_GLES3_API GLES3InputAssembler final : public InputAssembler {
@@ -45,7 +45,7 @@ protected:
     void doInit(const InputAssemblerInfo &info) override;
     void doDestroy() override;
 
-    GLES3GPUInputAssembler *_gpuInputAssembler = nullptr;
+    IntrusivePtr<GLES3GPUInputAssembler> _gpuInputAssembler = nullptr;
 };
 
 } // namespace gfx

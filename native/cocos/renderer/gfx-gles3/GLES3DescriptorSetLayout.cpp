@@ -56,7 +56,8 @@ void GLES3DescriptorSetLayout::doInit(const DescriptorSetLayoutInfo & /*info*/) 
 }
 
 void GLES3DescriptorSetLayout::doDestroy() {
-    CC_SAFE_DELETE(_gpuDescriptorSetLayout);
+//    CC_SAFE_DELETE(_gpuDescriptorSetLayout);
+    _gpuDescriptorSetLayout = nullptr;
 }
 
 } // namespace gfx

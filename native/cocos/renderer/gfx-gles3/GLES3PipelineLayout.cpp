@@ -67,7 +67,8 @@ void GLES3PipelineLayout::doInit(const PipelineLayoutInfo & /*info*/) {
 }
 
 void GLES3PipelineLayout::doDestroy() {
-    CC_SAFE_DELETE(_gpuPipelineLayout);
+//    CC_SAFE_DELETE(_gpuPipelineLayout);
+    _gpuPipelineLayout = nullptr;
 }
 
 } // namespace gfx

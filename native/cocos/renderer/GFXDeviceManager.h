@@ -84,7 +84,7 @@ public:
 #endif
 
 #ifdef CC_USE_VULKAN
-        if (tryCreate<CCVKDevice>(info, &device)) return device;
+        // if (tryCreate<CCVKDevice>(info, &device)) return device;
 #endif
 
 #ifdef CC_USE_METAL

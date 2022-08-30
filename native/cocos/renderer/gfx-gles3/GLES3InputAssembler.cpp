@@ -61,11 +61,16 @@ void GLES3InputAssembler::doInit(const InputAssemblerInfo &info) {
 }
 
 void GLES3InputAssembler::doDestroy() {
-    if (_gpuInputAssembler) {
-        cmdFuncGLES3DestroyInputAssembler(GLES3Device::getInstance(), _gpuInputAssembler);
-        delete _gpuInputAssembler;
-        _gpuInputAssembler = nullptr;
-    }
+//    if (_gpuInputAssembler) {
+//        cmdFuncGLES3DestroyInputAssembler(GLES3Device::getInstance(), _gpuInputAssembler);
+//        delete _gpuInputAssembler;
+//        _gpuInputAssembler = nullptr;
+//    }
+    _gpuInputAssembler = nullptr;
+}
+
+GLES3GPUInputAssembler::~GLES3GPUInputAssembler() {
+    cmdFuncGLES3DestroyInputAssembler(GLES3Device::getInstance(), this);
 }
 
 } // namespace gfx

@@ -24,6 +24,8 @@
 #include <algorithm>
 
 #include "base/Macros.h"
+#include "base/RefCounted.h"
+#include "base/Ptr.h"
 #include "base/std/container/unordered_map.h"
 #include "gfx-base/GFXDef-common.h"
 #include "gfx-base/GFXDef.h"
@@ -40,6 +42,14 @@ struct GLES3GPUConstantRegistry {
 
     MSRTSupportLevel mMSRT{MSRTSupportLevel::NONE};
     FBFSupportLevel mFBF{FBFSupportLevel::NONE};
+};
+
+class GLES3GPUObject : public RefCounted {
+public:
+    GLES3GPUObject() = default;
+    ~GLES3GPUObject() = default;
+
+    CC_DISALLOW_COPY_MOVE_ASSIGN(GLES3GPUObject)
 };
 
 class GLES3GPUStateCache;
@@ -103,7 +113,9 @@ public:
     }
 };
 
-struct GLES3GPUBuffer {
+struct GLES3GPUBuffer : public GLES3GPUObject {
+    ~GLES3GPUBuffer() override;
+
     BufferUsage usage = BufferUsage::NONE;
     MemoryUsage memUsage = MemoryUsage::NONE;
     uint32_t size = 0;
@@ -114,10 +126,13 @@ struct GLES3GPUBuffer {
     GLuint glOffset = 0;
     uint8_t *buffer = nullptr;
     DrawInfoList indirects;
+    bool memoryLess = false;
 };
-using GLES3GPUBufferList = ccstd::vector<GLES3GPUBuffer *>;
+using GLES3GPUBufferList = ccstd::vector<IntrusivePtr<GLES3GPUBuffer>>;
 
-struct GLES3GPUTexture {
+struct GLES3GPUTexture : public GLES3GPUObject {
+    ~GLES3GPUTexture() override;
+
     TextureType type{TextureType::TEX2D};
     Format format{Format::UNKNOWN};
     TextureUsage usage{TextureUsageBit::NONE};
@@ -146,15 +161,15 @@ struct GLES3GPUTexture {
     GLES3GPUSwapchain *swapchain{nullptr};
 };
 
-struct GLES3GPUTextureView {
-    GLES3GPUTexture *gpuTexture{nullptr};
+struct GLES3GPUTextureView : public GLES3GPUObject {
+    IntrusivePtr<GLES3GPUTexture> gpuTexture{nullptr};
     TextureType type = TextureType::TEX2D;
     Format format = Format::UNKNOWN;
     uint32_t baseLevel = 0U;
     uint32_t levelCount = 1U;
 };
 
-using GLES3GPUTextureViewList = ccstd::vector<GLES3GPUTextureView *>;
+using GLES3GPUTextureViewList = ccstd::vector<IntrusivePtr<GLES3GPUTextureView>>;
 
 struct GLES3GPUSwapchain {
 #if CC_SWAPPY_ENABLED
@@ -163,10 +178,10 @@ struct GLES3GPUSwapchain {
     EGLSurface eglSurface{EGL_NO_SURFACE};
     EGLint eglSwapInterval{0};
     GLuint glFramebuffer{0};
-    GLES3GPUTexture *gpuColorTexture{nullptr};
+    IntrusivePtr<GLES3GPUTexture> gpuColorTexture{nullptr};
 };
 
-class GLES3GPUSampler final {
+class GLES3GPUSampler final : public GLES3GPUObject {
 public:
     Filter minFilter = Filter::NONE;
     Filter magFilter = Filter::NONE;
@@ -266,7 +281,9 @@ struct GLES3GPUShaderStage {
 };
 using GLES3GPUShaderStageList = ccstd::vector<GLES3GPUShaderStage>;
 
-struct GLES3GPUShader {
+struct GLES3GPUShader : public GLES3GPUObject {
+    ~GLES3GPUShader() override;
+
     ccstd::string name;
     UniformBlockList blocks;
     UniformStorageBufferList buffers;
@@ -298,11 +315,12 @@ struct GLES3GPUAttribute {
 };
 using GLES3GPUAttributeList = ccstd::vector<GLES3GPUAttribute>;
 
-struct GLES3GPUInputAssembler {
+struct GLES3GPUInputAssembler : public GLES3GPUObject {
+    ~GLES3GPUInputAssembler() override;
     AttributeList attributes;
     GLES3GPUBufferList gpuVertexBuffers;
-    GLES3GPUBuffer *gpuIndexBuffer = nullptr;
-    GLES3GPUBuffer *gpuIndirectBuffer = nullptr;
+    IntrusivePtr<GLES3GPUBuffer> gpuIndexBuffer = nullptr;
+    IntrusivePtr<GLES3GPUBuffer> gpuIndirectBuffer = nullptr;
     GLES3GPUAttributeList glAttribs;
     GLenum glIndexType = 0;
     ccstd::unordered_map<size_t, GLuint> glVAOs;
@@ -316,7 +334,9 @@ struct GLES3GPUGeneralBarrier {
     GLbitfield glBarriersByRegion = 0U;
 };
 
-struct GLES3GPURenderPass {
+struct GLES3GPURenderPass : public GLES3GPUObject {
+    ~GLES3GPURenderPass() override;
+
     struct AttachmentStatistics {
         uint32_t loadSubpass{SUBPASS_EXTERNAL};
         uint32_t storeSubpass{SUBPASS_EXTERNAL};
@@ -334,11 +354,13 @@ struct GLES3GPURenderPass {
 };
 
 class GLES3GPUFramebufferCacheMap;
-class GLES3GPUFramebuffer final {
+class GLES3GPUFramebuffer final : public GLES3GPUObject {
 public:
-    GLES3GPURenderPass *gpuRenderPass{nullptr};
+    ~GLES3GPUFramebuffer() override;
+
+    IntrusivePtr<GLES3GPURenderPass> gpuRenderPass{nullptr};
     GLES3GPUTextureViewList gpuColorViews;
-    GLES3GPUTextureView *gpuDepthStencilView{nullptr};
+    IntrusivePtr<GLES3GPUTextureView> gpuDepthStencilView{nullptr};
     bool usesFBF{false};
 
     struct GLFramebufferInfo {
@@ -388,7 +410,7 @@ public:
     uint32_t uberFinalOutput{INVALID_BINDING};
 };
 
-struct GLES3GPUDescriptorSetLayout {
+struct GLES3GPUDescriptorSetLayout : public GLES3GPUObject {
     DescriptorSetLayoutBindingList bindings;
     ccstd::vector<uint32_t> dynamicBindings;
 
@@ -396,9 +418,9 @@ struct GLES3GPUDescriptorSetLayout {
     ccstd::vector<uint32_t> descriptorIndices;
     uint32_t descriptorCount = 0U;
 };
-using GLES3GPUDescriptorSetLayoutList = ccstd::vector<GLES3GPUDescriptorSetLayout *>;
+using GLES3GPUDescriptorSetLayoutList = ccstd::vector<IntrusivePtr<GLES3GPUDescriptorSetLayout>>;
 
-struct GLES3GPUPipelineLayout {
+struct GLES3GPUPipelineLayout : public GLES3GPUObject {
     GLES3GPUDescriptorSetLayoutList setLayouts;
 
     // helper storages
@@ -408,27 +430,27 @@ struct GLES3GPUPipelineLayout {
     uint32_t dynamicOffsetCount;
 };
 
-struct GLES3GPUPipelineState {
+struct GLES3GPUPipelineState : public GLES3GPUObject {
     GLenum glPrimitive = GL_TRIANGLES;
-    GLES3GPUShader *gpuShader = nullptr;
     RasterizerState rs;
     DepthStencilState dss;
     BlendState bs;
     DynamicStateList dynamicStates;
-    GLES3GPUPipelineLayout *gpuLayout = nullptr;
-    GLES3GPURenderPass *gpuRenderPass = nullptr;
-    GLES3GPUPipelineLayout *gpuPipelineLayout = nullptr;
+    IntrusivePtr<GLES3GPUShader> gpuShader = nullptr;
+    IntrusivePtr<GLES3GPUPipelineLayout> gpuLayout = nullptr;
+    IntrusivePtr<GLES3GPURenderPass> gpuRenderPass = nullptr;
+    IntrusivePtr<GLES3GPUPipelineLayout> gpuPipelineLayout = nullptr;
 };
 
 struct GLES3GPUDescriptor {
     DescriptorType type = DescriptorType::UNKNOWN;
-    GLES3GPUBuffer *gpuBuffer = nullptr;
-    GLES3GPUTextureView *gpuTextureView = nullptr;
-    GLES3GPUSampler *gpuSampler = nullptr;
+    IntrusivePtr<GLES3GPUBuffer> gpuBuffer = nullptr;
+    IntrusivePtr<GLES3GPUTextureView> gpuTextureView = nullptr;
+    IntrusivePtr<GLES3GPUSampler> gpuSampler = nullptr;
 };
 using GLES3GPUDescriptorList = ccstd::vector<GLES3GPUDescriptor>;
 
-struct GLES3GPUDescriptorSet {
+struct GLES3GPUDescriptorSet : public GLES3GPUObject {
     GLES3GPUDescriptorList gpuDescriptors;
     const ccstd::vector<uint32_t> *descriptorIndices = nullptr;
 };
@@ -438,7 +460,7 @@ struct GLES3GPUDispatchInfo {
     uint32_t groupCountY = 0;
     uint32_t groupCountZ = 0;
 
-    GLES3GPUBuffer *indirectBuffer = nullptr;
+    IntrusivePtr<GLES3GPUBuffer> indirectBuffer = nullptr;
     uint32_t indirectOffset = 0;
 };
 
@@ -651,26 +673,26 @@ private:
     CacheMap _textureMap;      // texture -> mip level -> framebuffer
 };
 
-class GLES3GPUFramebufferHub final {
-public:
-    void connect(GLES3GPUTexture *texture, GLES3GPUFramebuffer *framebuffer) {
-        _framebuffers[texture].push_back(framebuffer);
-    }
-
-    void disengage(GLES3GPUTexture *texture) {
-        _framebuffers.erase(texture);
-    }
-
-    void disengage(GLES3GPUTexture *texture, GLES3GPUFramebuffer *framebuffer) {
-        auto &pool = _framebuffers[texture];
-        pool.erase(std::remove(pool.begin(), pool.end(), framebuffer), pool.end());
-    }
-
-    void update(GLES3GPUTexture *texture);
-
-private:
-    ccstd::unordered_map<GLES3GPUTexture *, ccstd::vector<GLES3GPUFramebuffer *>> _framebuffers;
-};
+//class GLES3GPUFramebufferHub final {
+//public:
+//    void connect(GLES3GPUTexture *texture, GLES3GPUFramebuffer *framebuffer) {
+//        _framebuffers[texture].push_back(framebuffer);
+//    }
+//
+//    void disengage(GLES3GPUTexture *texture) {
+//        _framebuffers.erase(texture);
+//    }
+//
+//    void disengage(GLES3GPUTexture *texture, GLES3GPUFramebuffer *framebuffer) {
+//        auto &pool = _framebuffers[texture];
+//        pool.erase(std::remove(pool.begin(), pool.end(), framebuffer), pool.end());
+//    }
+//
+//    void update(GLES3GPUTexture *texture);
+//
+//private:
+//    ccstd::unordered_map<GLES3GPUTexture *, ccstd::vector<GLES3GPUFramebuffer *>> _framebuffers;
+//};
 
 } // namespace gfx
 } // namespace cc

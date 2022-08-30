@@ -84,11 +84,16 @@ void GLES3Shader::doInit(const ShaderInfo & /*info*/) {
 }
 
 void GLES3Shader::doDestroy() {
-    if (_gpuShader) {
-        cmdFuncGLES3DestroyShader(GLES3Device::getInstance(), _gpuShader);
-        delete _gpuShader;
-        _gpuShader = nullptr;
-    }
+//    if (_gpuShader) {
+//        cmdFuncGLES3DestroyShader(GLES3Device::getInstance(), _gpuShader);
+//        delete _gpuShader;
+//        _gpuShader = nullptr;
+//    }
+    _gpuShader = nullptr;
+}
+
+GLES3GPUShader::~GLES3GPUShader() {
+    cmdFuncGLES3DestroyShader(GLES3Device::getInstance(), this);
 }
 
 } // namespace gfx

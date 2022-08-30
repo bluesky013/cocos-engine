@@ -62,7 +62,8 @@ void GLES3DescriptorSet::doInit(const DescriptorSetInfo & /*info*/) {
 }
 
 void GLES3DescriptorSet::doDestroy() {
-    CC_SAFE_DELETE(_gpuDescriptorSet);
+//    CC_SAFE_DELETE(_gpuDescriptorSet);
+    _gpuDescriptorSet = nullptr;
 }
 
 void GLES3DescriptorSet::update() {

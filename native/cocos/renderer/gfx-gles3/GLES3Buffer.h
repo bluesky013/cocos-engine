@@ -26,12 +26,11 @@
 #pragma once
 
 #include "GLES3Std.h"
+#include "gfx-gles3/GLES3GPUObjects.h"
 #include "gfx-base/GFXBuffer.h"
 
 namespace cc {
 namespace gfx {
-
-struct GLES3GPUBuffer;
 
 class CC_GLES3_API GLES3Buffer final : public Buffer {
 public:
@@ -48,7 +47,7 @@ protected:
     void doDestroy() override;
     void doResize(uint32_t size, uint32_t count) override;
 
-    GLES3GPUBuffer *_gpuBuffer = nullptr;
+    IntrusivePtr<GLES3GPUBuffer> _gpuBuffer = nullptr;
 };
 
 } // namespace gfx

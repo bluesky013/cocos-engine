@@ -212,4 +212,7 @@ protected:
     T *_ptr{nullptr};
 };
 
+template <typename T>
+using ConstPtr = IntrusivePtr<const T>;
+
 } // namespace cc

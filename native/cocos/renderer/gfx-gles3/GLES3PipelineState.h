@@ -26,12 +26,11 @@
 #pragma once
 
 #include "GLES3Std.h"
+#include "gfx-gles3/GLES3GPUObjects.h"
 #include "gfx-base/GFXPipelineState.h"
 
 namespace cc {
 namespace gfx {
-
-struct GLES3GPUPipelineState;
 
 class CC_GLES3_API GLES3PipelineState final : public PipelineState {
 public:
@@ -44,7 +43,7 @@ protected:
     void doInit(const PipelineStateInfo &info) override;
     void doDestroy() override;
 
-    GLES3GPUPipelineState *_gpuPipelineState = nullptr;
+    IntrusivePtr<GLES3GPUPipelineState> _gpuPipelineState;
 };
 
 } // namespace gfx

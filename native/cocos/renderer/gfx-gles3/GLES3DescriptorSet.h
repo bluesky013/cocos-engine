@@ -26,12 +26,11 @@
 #pragma once
 
 #include "GLES3Std.h"
+#include "gfx-gles3/GLES3GPUObjects.h"
 #include "gfx-base/GFXDescriptorSet.h"
 
 namespace cc {
 namespace gfx {
-
-struct GLES3GPUDescriptorSet;
 
 class CC_GLES3_API GLES3DescriptorSet final : public DescriptorSet {
 public:
@@ -47,7 +46,7 @@ protected:
     void doInit(const DescriptorSetInfo &info) override;
     void doDestroy() override;
 
-    GLES3GPUDescriptorSet *_gpuDescriptorSet = nullptr;
+    IntrusivePtr<GLES3GPUDescriptorSet> _gpuDescriptorSet = nullptr;
 };
 
 } // namespace gfx

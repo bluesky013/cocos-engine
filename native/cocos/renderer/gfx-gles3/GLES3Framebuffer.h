@@ -26,12 +26,11 @@
 #pragma once
 
 #include "GLES3Std.h"
+#include "gfx-gles3/GLES3GPUObjects.h"
 #include "gfx-base/GFXFramebuffer.h"
 
 namespace cc {
 namespace gfx {
-
-class GLES3GPUFramebuffer;
 
 class CC_GLES3_API GLES3Framebuffer final : public Framebuffer {
 public:
@@ -44,7 +43,7 @@ protected:
     void doInit(const FramebufferInfo &info) override;
     void doDestroy() override;
 
-    GLES3GPUFramebuffer *_gpuFBO = nullptr;
+    IntrusivePtr<GLES3GPUFramebuffer> _gpuFBO = nullptr;
 };
 
 } // namespace gfx

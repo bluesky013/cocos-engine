@@ -77,7 +77,8 @@ void GLES3PipelineState::doInit(const PipelineStateInfo & /*info*/) {
 }
 
 void GLES3PipelineState::doDestroy() {
-    CC_SAFE_DELETE(_gpuPipelineState);
+//    CC_SAFE_DELETE(_gpuPipelineState);
+    _gpuPipelineState = nullptr;
 }
 
 } // namespace gfx

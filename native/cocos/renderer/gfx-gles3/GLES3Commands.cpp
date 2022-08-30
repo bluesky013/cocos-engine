@@ -1486,7 +1486,7 @@ void cmdFuncGLES3DestroyInputAssembler(GLES3Device *device, GLES3GPUInputAssembl
 }
 
 static GLES3GPUFramebuffer::GLFramebufferInfo doCreateFramebuffer(GLES3Device *device,
-                                                                  const ccstd::vector<GLES3GPUTextureView *> &attachments, const uint32_t *colors, size_t colorCount,
+                                                                  const ccstd::vector<IntrusivePtr<GLES3GPUTextureView>> &attachments, const uint32_t *colors, size_t colorCount,
                                                                   const GLES3GPUTextureView *depthStencilView,
                                                                   const uint32_t *resolves = nullptr,
                                                                   const GLES3GPUTextureView *depthStencilResolveView = nullptr,
@@ -1587,12 +1587,12 @@ static GLES3GPUFramebuffer::GLFramebufferInfo doCreateFramebuffer(GLES3Device *d
     return res;
 }
 
-static GLES3GPUSwapchain *getSwapchainIfExists(const ccstd::vector<GLES3GPUTextureView *> &textureViews, const uint32_t *indices, size_t count) {
+static GLES3GPUSwapchain *getSwapchainIfExists(const ccstd::vector<IntrusivePtr<GLES3GPUTextureView>> &textureViews, const uint32_t *indices, size_t count) {
     GLES3GPUSwapchain *swapchain{nullptr};
     if (indices) {
         size_t offscreenCount{0};
         for (size_t i = 0; i < count; ++i) {
-            auto *colorTexture = textureViews[indices[i]]->gpuTexture;
+            auto colorTexture = textureViews[indices[i]]->gpuTexture;
             if (colorTexture->swapchain) {
                 swapchain = colorTexture->swapchain;
             } else {
@@ -1657,7 +1657,7 @@ void cmdFuncGLES3CreateFramebuffer(GLES3Device *device, GLES3GPUFramebuffer *gpu
         gpuFBO->uberDepthStencil = hasDepth ? utils::toUint(gpuFBO->gpuColorViews.size()) : INVALID_BINDING;
         for (uint32_t i = 0U; i < gpuFBO->gpuColorViews.size(); ++i) {
             if (i == gpuFBO->uberFinalOutput) continue;
-            const auto *gpuTexture = gpuFBO->gpuColorViews[i];
+            const auto gpuTexture = gpuFBO->gpuColorViews[i];
             if (GFX_FORMAT_INFOS[toNumber(gpuTexture->format)].hasDepth) {
                 gpuFBO->uberDepthStencil = i;
                 continue;
@@ -2182,8 +2182,8 @@ void cmdFuncGLES3EndRenderPass(GLES3Device *device) {
 
             if (gpuFramebuffer->uberOnChipOutput != INVALID_BINDING) {
                 TextureBlit region;
-                auto *blitSrc = gpuFramebuffer->gpuColorViews[gpuFramebuffer->uberOnChipOutput]->gpuTexture;
-                auto *blitDst = gpuFramebuffer->gpuColorViews[gpuFramebuffer->uberFinalOutput]->gpuTexture;
+                auto blitSrc = gpuFramebuffer->gpuColorViews[gpuFramebuffer->uberOnChipOutput]->gpuTexture;
+                auto blitDst = gpuFramebuffer->gpuColorViews[gpuFramebuffer->uberFinalOutput]->gpuTexture;
                 region.srcExtent.width = region.dstExtent.width = blitSrc->width;
                 region.srcExtent.height = region.dstExtent.height = blitSrc->height;
                 cmdFuncGLES3BlitTexture(device, blitSrc, blitDst, &region, 1, Filter::POINT);
@@ -3247,13 +3247,13 @@ void cmdFuncGLES3ExecuteCmds(GLES3Device *device, GLES3CmdPackage *cmdPackage) {
     }
 }
 
-void GLES3GPUFramebufferHub::update(GLES3GPUTexture *texture) {
-    auto &pool = _framebuffers[texture];
-    for (auto *framebuffer : pool) {
-        cmdFuncGLES3DestroyFramebuffer(GLES3Device::getInstance(), framebuffer);
-        cmdFuncGLES3CreateFramebuffer(GLES3Device::getInstance(), framebuffer);
-    }
-}
+//void GLES3GPUFramebufferHub::update(GLES3GPUTexture *texture) {
+//    auto &pool = _framebuffers[texture];
+//    for (auto *framebuffer : pool) {
+//        cmdFuncGLES3DestroyFramebuffer(GLES3Device::getInstance(), framebuffer);
+//        cmdFuncGLES3CreateFramebuffer(GLES3Device::getInstance(), framebuffer);
+//    }
+//}
 
 } // namespace gfx
 } // namespace cc

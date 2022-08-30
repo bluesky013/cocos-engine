@@ -26,13 +26,12 @@
 #pragma once
 
 #include "GLES3Std.h"
+#include "gfx-gles3/GLES3GPUObjects.h"
 #include "gfx-base/GFXTexture.h"
 
 namespace cc {
 namespace gfx {
 
-struct GLES3GPUTexture;
-struct GLES3GPUTextureView;
 class CC_GLES3_API GLES3Texture final : public Texture {
 public:
     GLES3Texture();
@@ -50,8 +49,8 @@ protected:
 
     void createTextureView();
 
-    GLES3GPUTexture *_gpuTexture = nullptr;
-    GLES3GPUTextureView *_gpuTextureView = nullptr;
+    IntrusivePtr<GLES3GPUTexture> _gpuTexture = nullptr;
+    IntrusivePtr<GLES3GPUTextureView> _gpuTextureView = nullptr;
 };
 
 } // namespace gfx

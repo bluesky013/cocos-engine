@@ -46,7 +46,8 @@ GLES3Sampler::GLES3Sampler(const SamplerInfo &info) : Sampler(info) {
 }
 
 GLES3Sampler::~GLES3Sampler() {
-    CC_SAFE_DELETE(_gpuSampler);
+//    CC_SAFE_DELETE(_gpuSampler);
+    _gpuSampler = nullptr;
 }
 
 } // namespace gfx

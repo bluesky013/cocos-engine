@@ -76,11 +76,16 @@ void GLES3RenderPass::doInit(const RenderPassInfo & /*info*/) {
 }
 
 void GLES3RenderPass::doDestroy() {
-    if (_gpuRenderPass) {
-        cmdFuncGLES3DestroyRenderPass(GLES3Device::getInstance(), _gpuRenderPass);
-        delete _gpuRenderPass;
-        _gpuRenderPass = nullptr;
-    }
+//    if (_gpuRenderPass) {
+//        cmdFuncGLES3DestroyRenderPass(GLES3Device::getInstance(), _gpuRenderPass);
+//        delete _gpuRenderPass;
+//        _gpuRenderPass = nullptr;
+//    }
+    _gpuRenderPass = nullptr;
+}
+
+GLES3GPURenderPass::~GLES3GPURenderPass() {
+    cmdFuncGLES3DestroyRenderPass(GLES3Device::getInstance(), this);
 }
 
 } // namespace gfx

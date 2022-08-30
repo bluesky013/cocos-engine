@@ -44,7 +44,7 @@ protected:
     void doInit(const ShaderInfo &info) override;
     void doDestroy() override;
 
-    GLES3GPUShader *_gpuShader = nullptr;
+    IntrusivePtr<GLES3GPUShader> _gpuShader = nullptr;
 };
 
 } // namespace gfx

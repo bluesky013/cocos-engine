@@ -26,12 +26,11 @@
 #pragma once
 
 #include "../GLES3Std.h"
+#include "gfx-gles3/GLES3GPUObjects.h"
 #include "gfx-base/states/GFXSampler.h"
 
 namespace cc {
 namespace gfx {
-
-class GLES3GPUSampler;
 
 class CC_GLES3_API GLES3Sampler final : public Sampler {
 public:
@@ -41,7 +40,7 @@ public:
     inline GLES3GPUSampler *gpuSampler() const { return _gpuSampler; }
 
 protected:
-    GLES3GPUSampler *_gpuSampler = nullptr;
+    IntrusivePtr<GLES3GPUSampler> _gpuSampler = nullptr;
 };
 
 } // namespace gfx

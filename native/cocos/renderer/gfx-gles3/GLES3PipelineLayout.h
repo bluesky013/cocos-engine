@@ -26,12 +26,11 @@
 #pragma once
 
 #include "GLES3Std.h"
+#include "gfx-gles3/GLES3GPUObjects.h"
 #include "gfx-base/GFXPipelineLayout.h"
 
 namespace cc {
 namespace gfx {
-
-struct GLES3GPUPipelineLayout;
 
 class CC_GLES3_API GLES3PipelineLayout final : public PipelineLayout {
 public:
@@ -44,7 +43,7 @@ protected:
     void doInit(const PipelineLayoutInfo &info) override;
     void doDestroy() override;
 
-    GLES3GPUPipelineLayout *_gpuPipelineLayout = nullptr;
+    IntrusivePtr<GLES3GPUPipelineLayout> _gpuPipelineLayout = nullptr;
 };
 
 } // namespace gfx

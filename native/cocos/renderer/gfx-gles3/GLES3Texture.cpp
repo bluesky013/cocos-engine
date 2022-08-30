@@ -88,20 +88,22 @@ void GLES3Texture::createTextureView() {
 }
 
 void GLES3Texture::doDestroy() {
-    CC_SAFE_DELETE(_gpuTextureView);
-    if (_gpuTexture) {
-        if (!_isTextureView) {
-            if (!_gpuTexture->memoryless) {
-                GLES3Device::getInstance()->getMemoryStatus().textureSize -= _size;
-                CC_PROFILE_MEMORY_DEC(Texture, _size);
-            }
-
-            cmdFuncGLES3DestroyTexture(GLES3Device::getInstance(), _gpuTexture);
-            GLES3Device::getInstance()->framebufferHub()->disengage(_gpuTexture);
-            delete _gpuTexture;
-        }
-        _gpuTexture = nullptr;
-    }
+//    CC_SAFE_DELETE(_gpuTextureView);
+//    if (_gpuTexture) {
+//        if (!_isTextureView) {
+//            if (!_gpuTexture->memoryless) {
+//                GLES3Device::getInstance()->getMemoryStatus().textureSize -= _size;
+//                CC_PROFILE_MEMORY_DEC(Texture, _size);
+//            }
+//
+//            cmdFuncGLES3DestroyTexture(GLES3Device::getInstance(), _gpuTexture);
+//            GLES3Device::getInstance()->framebufferHub()->disengage(_gpuTexture);
+//            delete _gpuTexture;
+//        }
+//        _gpuTexture = nullptr;
+//    }
+    _gpuTexture = nullptr;
+    _gpuTextureView = nullptr;
 }
 
 void GLES3Texture::doResize(uint32_t width, uint32_t height, uint32_t size) {
@@ -117,7 +119,7 @@ void GLES3Texture::doResize(uint32_t width, uint32_t height, uint32_t size) {
 
     cmdFuncGLES3ResizeTexture(GLES3Device::getInstance(), _gpuTexture);
 
-    GLES3Device::getInstance()->framebufferHub()->update(_gpuTexture);
+//    GLES3Device::getInstance()->framebufferHub()->update(_gpuTexture);
 
     if (!_isTextureView && !_gpuTexture->memoryless) {
         GLES3Device::getInstance()->getMemoryStatus().textureSize += size;
@@ -144,6 +146,15 @@ void GLES3Texture::doInit(const SwapchainTextureInfo & /*info*/) {
     _gpuTexture->swapchain = static_cast<GLES3Swapchain *>(_swapchain)->gpuSwapchain();
     _gpuTextureView = ccnew GLES3GPUTextureView;
     createTextureView();
+}
+
+GLES3GPUTexture::~GLES3GPUTexture() {
+    if (!memoryless) {
+        GLES3Device::getInstance()->getMemoryStatus().textureSize -= size;
+        CC_PROFILE_MEMORY_DEC(Texture, size);
+    }
+
+    cmdFuncGLES3DestroyTexture(GLES3Device::getInstance(), this);
 }
 
 } // namespace gfx
