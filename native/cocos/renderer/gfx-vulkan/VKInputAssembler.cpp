@@ -84,8 +84,11 @@ void CCVKInputAssembler::doDestroy() {
 //    }
 }
 
-CCVKGPUInputAssembler::~CCVKGPUInputAssembler()
-{
+CCVKGPUInputAssembler::CCVKGPUInputAssembler() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::INPUT_ASSEMBLER);
+}
+
+CCVKGPUInputAssembler::~CCVKGPUInputAssembler() {
     auto hub = CCVKDevice::getInstance()->gpuDescriptorHub2();
     for (auto& vb : gpuVertexBuffers) {
         hub->disengage(this, vb);
@@ -96,6 +99,7 @@ CCVKGPUInputAssembler::~CCVKGPUInputAssembler()
     if (gpuIndirectBuffer) {
         hub->disengage(this, gpuIndirectBuffer);
     }
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::INPUT_ASSEMBLER);
 }
 
 } // namespace gfx

@@ -191,6 +191,10 @@ void CCVKTexture::doInit(const SwapchainTextureInfo & /*info*/) {
 }
 
 ///////////////////////////// GPU Texture /////////////////////////////
+CCVKGPUTexture::CCVKGPUTexture() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::TEXTURE);
+}
+
 CCVKGPUTexture::~CCVKGPUTexture() {
     if (!memoryless) {
         CCVKDevice::getInstance()->getMemoryStatus().textureSize -= size;
@@ -199,6 +203,7 @@ CCVKGPUTexture::~CCVKGPUTexture() {
 
     CCVKDevice::getInstance()->gpuBarrierManager()->cancel(this);
     CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkImage, vmaAllocation);
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::TEXTURE);
 
     if (swapchain != nullptr) {
         for (uint32_t i = 0; i < swapchainVmaAllocations.size() && i < swapchainVkImages.size(); ++i) {
@@ -231,9 +236,14 @@ void CCVKGPUTexture::init(const TextureInfo &info, uint32_t inSize) {
     init();
 }
 
+CCVKGPUTextureView::CCVKGPUTextureView() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::TEXTURE_VIEW);
+}
+
 CCVKGPUTextureView::~CCVKGPUTextureView() {
     CCVKDevice::getInstance()->gpuDescriptorHub2()->disengage(this);
     CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkImageView);
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::TEXTURE_VIEW);
     for (auto &view : swapchainVkImageViews) {
         CCVKDevice::getInstance()->gpuRecycleBin2()->collect(view);
     }

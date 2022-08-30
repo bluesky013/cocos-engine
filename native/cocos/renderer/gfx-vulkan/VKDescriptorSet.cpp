@@ -290,6 +290,10 @@ void CCVKDescriptorSet::forceUpdate() {
     update();
 }
 
+CCVKGPUDescriptorSet::CCVKGPUDescriptorSet() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::DESCRIPTOR_SET);
+}
+
 CCVKGPUDescriptorSet::~CCVKGPUDescriptorSet() {
     CCVKDevice *gpuDevice = CCVKDevice::getInstance();
 //    CCVKGPUDescriptorHub *descriptorHub = CCVKDevice::getInstance()->gpuDescriptorHub();
@@ -323,6 +327,7 @@ CCVKGPUDescriptorSet::~CCVKGPUDescriptorSet() {
     }
 
     CCVKDevice::getInstance()->gpuDescriptorSetHub()->erase(this);
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::DESCRIPTOR_SET);
 }
 
 } // namespace gfx

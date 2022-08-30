@@ -399,6 +399,7 @@ bool CCVKDevice::doInit(const DeviceInfo & /*info*/) {
     _gpuBarrierManager = ccnew CCVKGPUBarrierManager(_gpuDevice);
 //    _gpuFramebufferHub = ccnew CCVKGPUFramebufferHub;
     _gpuDescriptorSetHub = ccnew CCVKGPUDescriptorSetHub(_gpuDevice);
+    _gpuObjectCounter = ccnew CCVKGPUObjectCounter();
 
 //    _gpuDescriptorHub->link(_gpuDescriptorSetHub);
     _gpuDescriptorHub2->link(_gpuDescriptorSetHub);
@@ -526,6 +527,7 @@ void CCVKDevice::doDestroy() {
     CC_SAFE_DELETE(_gpuDescriptorHub2)
     CC_SAFE_DELETE(_gpuBufferHub)
     CC_SAFE_DELETE(_gpuBarrierManager)
+    CC_SAFE_DELETE(_gpuObjectCounter)
 
     if (_gpuDevice) {
         uint32_t backBufferCount = _gpuDevice->backBufferCount;

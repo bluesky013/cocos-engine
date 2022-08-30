@@ -56,8 +56,13 @@ CCVKSampler::~CCVKSampler() { // NOLINT(bugprone-exception-escape) garbage colle
 //    }
 }
 
+CCVKGPUSampler::CCVKGPUSampler() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::SAMPLER);
+}
+
 CCVKGPUSampler::~CCVKGPUSampler() {
 //    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(this);
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::SAMPLER);
     CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkSampler);
 }
 

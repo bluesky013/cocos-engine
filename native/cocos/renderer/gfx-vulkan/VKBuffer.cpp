@@ -146,12 +146,17 @@ void CCVKBuffer::update(const void *buffer, uint32_t size) {
 }
 
 ///////////////////////////// GPU Buffer /////////////////////////////
+CCVKGPUBuffer::CCVKGPUBuffer() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::BUFFER);
+}
+
 CCVKGPUBuffer::~CCVKGPUBuffer() {
     CCVKDevice::getInstance()->getMemoryStatus().bufferSize -= size;
     CC_PROFILE_MEMORY_DEC(Buffer, size);
 
     CCVKDevice::getInstance()->gpuBarrierManager()->cancel(this);  // [?]
     CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkBuffer, vmaAllocation);
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::BUFFER);
 }
 
 void CCVKGPUBuffer::init() {
@@ -167,9 +172,14 @@ void CCVKGPUBuffer::init() {
     CC_PROFILE_MEMORY_INC(Buffer, size);
 }
 
+CCVKGPUBufferView::CCVKGPUBufferView() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::BUFFER_VIEW);
+}
+
 CCVKGPUBufferView::~CCVKGPUBufferView() {
     CCVKDevice::getInstance()->gpuBufferHub()->erase(this);        // [?]
-//    CCVKDevice::getInstance()->gpuDescriptorHub2()->disengage(this);
+    CCVKDevice::getInstance()->gpuDescriptorHub2()->disengage(this);
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::BUFFER_VIEW);
 }
 
 } // namespace gfx

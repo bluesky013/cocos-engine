@@ -95,9 +95,34 @@ struct CCVKGPUGeneralBarrier {
     ThsvsGlobalBarrier barrier{};
 };
 
-class CCVKGPURenderPass final : public RefCounted {
+enum class GPUObjectType {
+    UNKNOWN,
+    BUFFER,
+    BUFFER_VIEW,
+    TEXTURE,
+    TEXTURE_VIEW,
+    FRAMEBUFFER,
+    QUERY_POOL,
+    RENDER_PASS,
+    SAMPLER,
+    PIPELINE_STATE,
+    DESCRIPTOR_SET,
+    EVENT,
+    DELAY_REMOVE = EVENT,
+    INPUT_ASSEMBLER
+};
+
+class CCVKGPUObject : public RefCounted {
 public:
-    CCVKGPURenderPass() = default;
+    CCVKGPUObject() = default;
+    ~CCVKGPUObject() = default;
+
+    CC_DISALLOW_COPY_MOVE_ASSIGN(CCVKGPUObject)
+};
+
+class CCVKGPURenderPass final : public CCVKGPUObject {
+public:
+    CCVKGPURenderPass();
     ~CCVKGPURenderPass() override;
 
     void init();
@@ -119,8 +144,8 @@ public:
 struct CCVKGPUSwapchain;
 struct CCVKGPUFramebuffer;
 
-struct CCVKGPUTexture : public RefCounted {
-    CCVKGPUTexture() = default;
+struct CCVKGPUTexture : public CCVKGPUObject {
+    CCVKGPUTexture();
     ~CCVKGPUTexture() override;
 
     void init();
@@ -154,8 +179,8 @@ struct CCVKGPUTexture : public RefCounted {
     ThsvsAccessType transferAccess = THSVS_ACCESS_NONE;
 };
 
-struct CCVKGPUTextureView : public RefCounted {
-    CCVKGPUTextureView() = default;
+struct CCVKGPUTextureView : public CCVKGPUObject {
+    CCVKGPUTextureView();
     ~CCVKGPUTextureView() override;
 
     void init();
@@ -175,8 +200,8 @@ struct CCVKGPUTextureView : public RefCounted {
     VkImageView vkImageView = VK_NULL_HANDLE;
 };
 
-struct CCVKGPUSampler : public RefCounted {
-    CCVKGPUSampler() = default;
+struct CCVKGPUSampler : public CCVKGPUObject {
+    CCVKGPUSampler();
     ~CCVKGPUSampler() override;
 
     void init();
@@ -195,8 +220,8 @@ struct CCVKGPUSampler : public RefCounted {
     VkSampler vkSampler;
 };
 
-struct CCVKGPUBuffer : public RefCounted {
-    CCVKGPUBuffer() = default;
+struct CCVKGPUBuffer : public CCVKGPUObject {
+    CCVKGPUBuffer();
     ~CCVKGPUBuffer() override;
 
     void init();
@@ -231,8 +256,8 @@ struct CCVKGPUBuffer : public RefCounted {
 //    }
 };
 
-struct CCVKGPUBufferView : public RefCounted {
-    CCVKGPUBufferView() = default;
+struct CCVKGPUBufferView : public CCVKGPUObject {
+    CCVKGPUBufferView();
     ~CCVKGPUBufferView() override;
 
     IntrusivePtr<CCVKGPUBuffer> gpuBuffer;
@@ -248,8 +273,8 @@ struct CCVKGPUBufferView : public RefCounted {
     }
 };
 
-struct CCVKGPUFramebuffer : public RefCounted {
-    CCVKGPUFramebuffer() = default;
+struct CCVKGPUFramebuffer : public CCVKGPUObject {
+    CCVKGPUFramebuffer();
     ~CCVKGPUFramebuffer() override;
 
     void init();
@@ -301,7 +326,7 @@ struct CCVKGPUQueue {
     ccstd::vector<VkCommandBuffer> commandBuffers;
 };
 
-struct CCVKGPUQueryPool : public RefCounted {
+struct CCVKGPUQueryPool : public CCVKGPUObject {
     CCVKGPUQueryPool() = default;
     ~CCVKGPUQueryPool() override;
 
@@ -323,7 +348,7 @@ struct CCVKGPUShaderStage {
     VkShaderModule vkShader = VK_NULL_HANDLE;
 };
 
-struct CCVKGPUShader : public RefCounted {
+struct CCVKGPUShader : public CCVKGPUObject {
     CCVKGPUShader() = default;
     ~CCVKGPUShader() override;
 
@@ -333,9 +358,9 @@ struct CCVKGPUShader : public RefCounted {
     bool initialized = false;
 };
 
-struct CCVKGPUInputAssembler : public RefCounted {
-    CCVKGPUInputAssembler() = default;
-    ~CCVKGPUInputAssembler();
+struct CCVKGPUInputAssembler : public CCVKGPUObject {
+    CCVKGPUInputAssembler();
+    ~CCVKGPUInputAssembler() override;
 
     void update(CCVKGPUBufferView *oldBuffer, CCVKGPUBufferView *newBuffer)
     {
@@ -375,9 +400,9 @@ struct CCVKGPUDescriptor {
 };
 
 struct CCVKGPUDescriptorSetLayout;
-struct CCVKGPUDescriptorSet : public RefCounted {
-    CCVKGPUDescriptorSet() = default;
-    ~CCVKGPUDescriptorSet();
+struct CCVKGPUDescriptorSet : public CCVKGPUObject {
+    CCVKGPUDescriptorSet();
+    ~CCVKGPUDescriptorSet() override;
 
     void update(CCVKGPUBufferView *oldBuffer, CCVKGPUBufferView *newBuffer)
     {
@@ -438,7 +463,7 @@ struct CCVKGPUDescriptorSet : public RefCounted {
     uint32_t layoutID = 0U;
 };
 
-struct CCVKGPUPipelineLayout : public RefCounted {
+struct CCVKGPUPipelineLayout : public CCVKGPUObject {
     CCVKGPUPipelineLayout() = default;
     ~CCVKGPUPipelineLayout() override;
 
@@ -453,7 +478,7 @@ struct CCVKGPUPipelineLayout : public RefCounted {
     uint32_t dynamicOffsetCount;
 };
 
-struct CCVKGPUPipelineState : public RefCounted {
+struct CCVKGPUPipelineState : public CCVKGPUObject {
     CCVKGPUPipelineState() = default;
     ~CCVKGPUPipelineState() override;
 
@@ -773,7 +798,7 @@ private:
     uint32_t _maxSetsPerPool = 0U;
 };
 
-struct CCVKGPUDescriptorSetLayout : public RefCounted {
+struct CCVKGPUDescriptorSetLayout : public CCVKGPUObject {
     CCVKGPUDescriptorSetLayout() = default;
     ~CCVKGPUDescriptorSetLayout() override;
 
@@ -1303,9 +1328,17 @@ public:
     }
 
     void disengage(const CCVKGPUBufferView *buffer) {
-        auto iter = _buffers.find(buffer);
-        if (iter != _buffers.end()) {
-            _buffers.erase(iter);
+        {
+            auto iter = _buffers.find(buffer);
+            if (iter != _buffers.end()) {
+                _buffers.erase(iter);
+            }
+        }
+        {
+            auto iter = _ias.find(buffer);
+            if (iter != _ias.end()) {
+                _ias.erase(iter);
+            }
         }
     }
 
@@ -1366,7 +1399,7 @@ private:
 //            }
 //        } else {
 //            Resource &res = _resources[_count++];
-//            res.type = RecycledType::TEXTURE;
+//            res.type = GPUObjectType::TEXTURE;
 //            res.image = {gpuTexture->vkImage, gpuTexture->vmaAllocation};
 //        }
 //    }
@@ -1382,7 +1415,7 @@ private:
 //            gpuTextureView->swapchainVkImageViews.clear();
 //        } else {
 //            Resource &res = _resources[_count++];
-//            res.type = RecycledType::TEXTURE_VIEW;
+//            res.type = GPUObjectType::TEXTURE_VIEW;
 //            res.vkImageView = gpuTextureView->vkImageView;
 //        }
 //    }
@@ -1396,7 +1429,7 @@ private:
 //                }
 //                for (VkFramebuffer vkFramebuffer : list) {
 //                    Resource &res = _resources[_count++];
-//                    res.type = RecycledType::FRAMEBUFFER;
+//                    res.type = GPUObjectType::FRAMEBUFFER;
 //                    res.vkFramebuffer = vkFramebuffer;
 //                }
 //                list.clear();
@@ -1406,7 +1439,7 @@ private:
 //                _resources.resize(_count * 2);
 //            }
 //            Resource &res = _resources[_count++];
-//            res.type = RecycledType::FRAMEBUFFER;
+//            res.type = GPUObjectType::FRAMEBUFFER;
 //            res.vkFramebuffer = gpuFramebuffer->vkFramebuffer;
 //        }
 //    }
@@ -1421,19 +1454,19 @@ private:
 //        expr;                                                                  \
 //    }
 //
-//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUBuffer, RecycledType::BUFFER, (res.buffer = {gpuRes->vkBuffer, gpuRes->vmaAllocation}))
-//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPURenderPass, RecycledType::RENDER_PASS, res.gpuRenderPass = gpuRes)
-//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUSampler, RecycledType::SAMPLER, res.gpuSampler = gpuRes)
-//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUShader, RecycledType::SHADER, res.gpuShader = gpuRes)
-//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUQueryPool, RecycledType::QUERY_POOL, res.gpuQueryPool = gpuRes)
-//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUDescriptorSetLayout, RecycledType::DESCRIPTOR_SET_LAYOUT, res.gpuDescriptorSetLayout = gpuRes)
-//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUPipelineLayout, RecycledType::PIPELINE_LAYOUT, res.gpuPipelineLayout = gpuRes)
-//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUPipelineState, RecycledType::PIPELINE_STATE, res.gpuPipelineState = gpuRes)
+//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUBuffer, GPUObjectType::BUFFER, (res.buffer = {gpuRes->vkBuffer, gpuRes->vmaAllocation}))
+//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPURenderPass, GPUObjectType::RENDER_PASS, res.gpuRenderPass = gpuRes)
+//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUSampler, GPUObjectType::SAMPLER, res.gpuSampler = gpuRes)
+//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUShader, GPUObjectType::SHADER, res.gpuShader = gpuRes)
+//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUQueryPool, GPUObjectType::QUERY_POOL, res.gpuQueryPool = gpuRes)
+//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUDescriptorSetLayout, GPUObjectType::DESCRIPTOR_SET_LAYOUT, res.gpuDescriptorSetLayout = gpuRes)
+//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUPipelineLayout, GPUObjectType::PIPELINE_LAYOUT, res.gpuPipelineLayout = gpuRes)
+//    DEFINE_RECYCLE_BIN_COLLECT_FN(CCVKGPUPipelineState, GPUObjectType::PIPELINE_STATE, res.gpuPipelineState = gpuRes)
 //
 //    void clear();
 //
 //private:
-//    enum class RecycledType {
+//    enum class GPUObjectType {
 //        UNKNOWN,
 //        BUFFER,
 //        TEXTURE,
@@ -1456,7 +1489,7 @@ private:
 //        VmaAllocation vmaAllocation;
 //    };
 //    struct Resource {
-//        RecycledType type = RecycledType::UNKNOWN;
+//        GPUObjectType type = GPUObjectType::UNKNOWN;
 //        union {
 //            // resizable resources, cannot take over directly
 //            // or descriptor sets won't work
@@ -1501,20 +1534,6 @@ public:
     void clear();
 
 private:
-    enum class RecycledType {
-        UNKNOWN,
-        BUFFER,
-        TEXTURE,
-        TEXTURE_VIEW,
-        FRAMEBUFFER,
-        QUERY_POOL,
-        RENDER_PASS,
-        SAMPLER,
-        PIPELINE_STATE,
-        DESCRIPTOR_SET,
-        EVENT,
-    };
-
     struct Buffer {
         Buffer() noexcept = default;
         ~Buffer() noexcept = default;
@@ -1535,7 +1554,7 @@ private:
     };
 
     struct Resource {
-        RecycledType type = RecycledType::UNKNOWN;
+        GPUObjectType type = GPUObjectType::UNKNOWN;
         Buffer buffer;
         Image image;
         Set set;
@@ -1548,7 +1567,7 @@ private:
         VkEvent vkEvent;
     };
 
-    Resource& emplace(RecycledType type)
+    Resource& emplace(GPUObjectType type)
     {
         auto& back = _resources.emplace_back();
         back.type = type;
@@ -1713,6 +1732,25 @@ private:
     ccstd::vector<ccstd::unordered_map<CCVKGPUBufferView *, BufferUpdate>> _buffersToBeUpdated;
 
     CCVKGPUDevice *_device = nullptr;
+};
+
+class CCVKGPUObjectCounter {
+public:
+    CCVKGPUObjectCounter() = default;
+    ~CCVKGPUObjectCounter() = default;
+
+    void addReference(GPUObjectType type)
+    {
+        objects[type]++;
+    }
+
+    void removeReference(GPUObjectType type)
+    {
+        objects[type]--;
+    }
+
+private:
+    std::unordered_map<GPUObjectType, uint32_t> objects;
 };
 
 //class CCVKGPUFramebufferHub final {

@@ -81,8 +81,13 @@ void CCVKRenderPass::doDestroy() {
 //    }
 }
 
+CCVKGPURenderPass::CCVKGPURenderPass() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::RENDER_PASS);
+}
+
 CCVKGPURenderPass::~CCVKGPURenderPass() {
     CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkRenderPass);
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::RENDER_PASS);
 }
 
 void CCVKGPURenderPass::init() {

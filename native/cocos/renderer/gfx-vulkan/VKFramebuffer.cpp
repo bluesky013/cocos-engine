@@ -78,8 +78,13 @@ void CCVKFramebuffer::doDestroy() {
 //    }
 }
 
+CCVKGPUFramebuffer::CCVKGPUFramebuffer() {
+    CCVKDevice::getInstance()->gpuObjectCounter()->addReference(GPUObjectType::FRAMEBUFFER);
+}
+
 CCVKGPUFramebuffer::~CCVKGPUFramebuffer() {
     CCVKDevice::getInstance()->gpuRecycleBin2()->collect(vkFramebuffer);
+    CCVKDevice::getInstance()->gpuObjectCounter()->removeReference(GPUObjectType::FRAMEBUFFER);
     for (auto& fb : vkFrameBuffers) {
         CCVKDevice::getInstance()->gpuRecycleBin2()->collect(fb);
     }
