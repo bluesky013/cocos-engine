@@ -61,7 +61,7 @@ public:
      *
      * @see release, autorelease
      */
-    void addRef();
+    void addRef() const;
 
     /**
      * Releases the ownership immediately.
@@ -73,7 +73,7 @@ public:
      *
      * @see retain, autorelease
      */
-    void release();
+    void release() const;
 
     /**
      * Returns the Ref's current reference count.
@@ -91,7 +91,7 @@ protected:
     RefCounted();
 
     /// count of references
-    unsigned int _referenceCount{0};
+    mutable unsigned int _referenceCount{0};
 
     // Memory leak diagnostic data (only included when CC_REF_LEAK_DETECTION is defined and its value isn't zero)
 #if CC_REF_LEAK_DETECTION

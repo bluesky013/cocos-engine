@@ -42,8 +42,8 @@ class CCVKGPUTransportHub;
 class CCVKGPUDescriptorHub;
 class CCVKGPUSemaphorePool;
 class CCVKGPUBarrierManager;
-class CCVKGPUFramebufferHub;
 class CCVKGPUDescriptorSetHub;
+class CCVKGPUInputAssemblerHub;
 
 class CCVKGPUFencePool;
 class CCVKGPURecycleBin;
@@ -91,8 +91,8 @@ public:
     inline CCVKGPUDescriptorHub *gpuDescriptorHub() { return _gpuDescriptorHub; }
     inline CCVKGPUSemaphorePool *gpuSemaphorePool() { return _gpuSemaphorePool; }
     inline CCVKGPUBarrierManager *gpuBarrierManager() { return _gpuBarrierManager; }
-    inline CCVKGPUFramebufferHub *gpuFramebufferHub() { return _gpuFramebufferHub; }
     inline CCVKGPUDescriptorSetHub *gpuDescriptorSetHub() { return _gpuDescriptorSetHub; }
+    inline CCVKGPUInputAssemblerHub *gpuIAHub() { return _gpuIAHub; }
 
     CCVKGPUFencePool *gpuFencePool();
     CCVKGPURecycleBin *gpuRecycleBin();
@@ -148,8 +148,8 @@ protected:
     CCVKGPUDescriptorHub *_gpuDescriptorHub{nullptr};
     CCVKGPUSemaphorePool *_gpuSemaphorePool{nullptr};
     CCVKGPUBarrierManager *_gpuBarrierManager{nullptr};
-    CCVKGPUFramebufferHub *_gpuFramebufferHub{nullptr};
     CCVKGPUDescriptorSetHub *_gpuDescriptorSetHub{nullptr};
+    CCVKGPUInputAssemblerHub *_gpuIAHub{nullptr};
 
     ccstd::vector<const char *> _layers;
     ccstd::vector<const char *> _extensions;

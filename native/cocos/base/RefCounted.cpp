@@ -52,11 +52,11 @@ RefCounted::~RefCounted() { // NOLINT(modernize-use-equals-default)
 #endif
 }
 
-void RefCounted::addRef() {
+void RefCounted::addRef() const {
     ++_referenceCount;
 }
 
-void RefCounted::release() {
+void RefCounted::release() const {
     CC_ASSERT(_referenceCount > 0);
     --_referenceCount;
 

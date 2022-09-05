@@ -77,9 +77,13 @@ void CCVKShader::doInit(const ShaderInfo & /*info*/) {
 }
 
 void CCVKShader::doDestroy() {
-    if (_gpuShader) {
-        CCVKDevice::getInstance()->gpuRecycleBin()->collect(_gpuShader);
-        _gpuShader = nullptr;
+    _gpuShader = nullptr;
+}
+
+CCVKGPUShader::~CCVKGPUShader() {
+    auto gpuDevice = CCVKDevice::getInstance()->gpuDevice();
+    for (CCVKGPUShaderStage &stage : gpuStages) {
+        vkDestroyShaderModule(gpuDevice->vkDevice, stage.vkShader, nullptr);
     }
 }
 

@@ -78,6 +78,7 @@ protected:
     VsyncMode _vsyncMode{VsyncMode::RELAXED};
     SurfaceTransform _transform{SurfaceTransform::IDENTITY};
     bool _preRotationEnabled{false};
+    uint32_t _generation{0};
 
     IntrusivePtr<Texture> _colorTexture;
     IntrusivePtr<Texture> _depthStencilTexture;
