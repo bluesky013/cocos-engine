@@ -50,7 +50,6 @@ void CCVKGPUSampler::init() {
 }
 
 void CCVKGPUSampler::shutdown() {
-    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(this);
     CCVKDevice::getInstance()->gpuRecycleBin()->collect(this);
 }
 

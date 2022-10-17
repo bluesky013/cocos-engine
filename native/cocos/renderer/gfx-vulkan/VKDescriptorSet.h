@@ -48,6 +48,13 @@ protected:
     void doInit(const DescriptorSetInfo &info) override;
     void doDestroy() override;
 
+    void updateBufferDescriptor(uint32_t index, CCVKGPUDescriptor &binding);
+    void updateImageDescriptor(uint32_t index, CCVKGPUDescriptor &binding);
+    void updateSamplerDescriptor(uint32_t index, CCVKGPUDescriptor &binding);
+
+    void createGPUDescriptorSet();
+    void updateGPUDescriptorSet();
+
     IntrusivePtr<CCVKGPUDescriptorSet> _gpuDescriptorSet;
 };
 

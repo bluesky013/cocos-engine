@@ -73,18 +73,32 @@ void CCVKBuffer::createBufferView(uint32_t range) {
 }
 
 void CCVKBuffer::doDestroy() {
+    if (_gpuBuffer && !_isBufferView) {
+        CCVKDevice::getInstance()->gpuBarrierManager()->cancel(_gpuBuffer);
+        CCVKDevice::getInstance()->gpuBufferHub()->erase(_gpuBuffer);
+    }
+
+    if (_gpuBufferView && !hasFlag(_flags, BufferFlagBit::DISABLE_RESIZE)) {
+        CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(_gpuBufferView);
+        CCVKDevice::getInstance()->gpuIAHub()->disengage(_gpuBufferView);
+    }
     _gpuBufferView = nullptr;
     _gpuBuffer = nullptr;
 }
 
 void CCVKBuffer::doResize(uint32_t size, uint32_t count) {
+    CCVKGPUBuffer *oldBuffer = _gpuBuffer;
     createBuffer(size, count);
+    CCVKDevice::getInstance()->gpuBarrierManager()->cancel(oldBuffer);
+    CCVKDevice::getInstance()->gpuBufferHub()->erase(oldBuffer);
 
-    // Hold reference to keep the old bufferView alive during DescriptorHub::update and IAHub::update.
-    IntrusivePtr<CCVKGPUBufferView> oldBufferView = _gpuBufferView;
+    CCVKGPUBufferView *oldBufferView = _gpuBufferView;
     createBufferView(size);
     CCVKDevice::getInstance()->gpuDescriptorHub()->update(oldBufferView, _gpuBufferView);
     CCVKDevice::getInstance()->gpuIAHub()->update(oldBufferView, _gpuBufferView);
+
+    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(oldBufferView);
+    CCVKDevice::getInstance()->gpuIAHub()->disengage(oldBufferView);
 }
 
 void CCVKBuffer::update(const void *buffer, uint32_t size) {
@@ -93,10 +107,7 @@ void CCVKBuffer::update(const void *buffer, uint32_t size) {
 }
 
 void CCVKGPUBuffer::shutdown() {
-    CCVKDevice::getInstance()->gpuBarrierManager()->cancel(this);
     CCVKDevice::getInstance()->gpuRecycleBin()->collect(this);
-    CCVKDevice::getInstance()->gpuBufferHub()->erase(this);
-
     CCVKDevice::getInstance()->getMemoryStatus().bufferSize -= size;
     CC_PROFILE_MEMORY_DEC(Buffer, size);
 }
@@ -111,11 +122,6 @@ void CCVKGPUBuffer::init() {
     cmdFuncCCVKCreateBuffer(CCVKDevice::getInstance(), this);
     CCVKDevice::getInstance()->getMemoryStatus().bufferSize += size;
     CC_PROFILE_MEMORY_INC(Buffer, size);
-}
-
-void CCVKGPUBufferView::shutdown() {
-    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(this);
-    CCVKDevice::getInstance()->gpuIAHub()->disengage(this);
 }
 
 } // namespace gfx

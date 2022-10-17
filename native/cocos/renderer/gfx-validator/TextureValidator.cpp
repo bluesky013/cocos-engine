@@ -116,7 +116,7 @@ void TextureValidator::doResize(uint32_t width, uint32_t height, uint32_t /*size
 
     // Cannot resize texture views.
     CC_ASSERT(!_isTextureView);
-
+    CC_ASSERT(!hasFlag(_info.flags, TextureFlagBit::DISABLE_RESIZE));
     /////////// execute ///////////
 
     _actor->resize(width, height);

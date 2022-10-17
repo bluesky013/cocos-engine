@@ -94,18 +94,31 @@ void CCVKTexture::createTextureView(bool initGPUTextureView) {
 }
 
 void CCVKTexture::doDestroy() {
+    if (_gpuTexture && !_isTextureView) {
+        CCVKDevice::getInstance()->gpuBarrierManager()->cancel(_gpuTexture);
+    }
+
+    if (_gpuTextureView && !hasFlag(_info.flags, TextureFlagBit::DISABLE_RESIZE)) {
+        CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(_gpuTextureView);
+    }
+
     _gpuTexture = nullptr;
     _gpuTextureView = nullptr;
 }
 
 void CCVKTexture::doResize(uint32_t width, uint32_t height, uint32_t size) {
     if (!width || !height) return;
-    createTexture(width, height, size);
 
-    // Hold reference to keep the old textureView alive during DescriptorHub::update.
-    IntrusivePtr<CCVKGPUTextureView> oldTextureView = _gpuTextureView;
+    CCVKGPUTexture *oldTexture = _gpuTexture;
+    createTexture(width, height, size);
+    CCVKDevice::getInstance()->gpuBarrierManager()->cancel(oldTexture);
+
+    CCVKGPUTextureView *oldTextureView = _gpuTextureView;
     createTextureView();
+
     CCVKDevice::getInstance()->gpuDescriptorHub()->update(oldTextureView, _gpuTextureView);
+
+    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(oldTextureView);
 }
 
 ///////////////////////////// Swapchain Specific /////////////////////////////
@@ -129,8 +142,6 @@ void CCVKGPUTexture::shutdown() {
         CCVKDevice::getInstance()->getMemoryStatus().textureSize -= size;
         CC_PROFILE_MEMORY_DEC(Texture, size);
     }
-
-    CCVKDevice::getInstance()->gpuBarrierManager()->cancel(this);
     CCVKDevice::getInstance()->gpuRecycleBin()->collect(this);
 }
 
@@ -139,7 +150,6 @@ void CCVKGPUTextureView::init() {
 }
 
 void CCVKGPUTextureView::shutdown() {
-    CCVKDevice::getInstance()->gpuDescriptorHub()->disengage(this);
     CCVKDevice::getInstance()->gpuRecycleBin()->collect(this);
 }
 

@@ -69,6 +69,10 @@ void Buffer::destroy() {
 }
 
 void Buffer::resize(uint32_t size) {
+    if (hasFlag(_flags, BufferFlagBit::DISABLE_RESIZE)) {
+        return;
+    }
+
     if (size != _size) {
         uint32_t count = size / _stride;
         doResize(size, count);

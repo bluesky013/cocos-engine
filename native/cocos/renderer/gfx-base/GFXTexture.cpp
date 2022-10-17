@@ -87,6 +87,10 @@ uint32_t getLevelCount(uint32_t width, uint32_t height) {
 }
 
 void Texture::resize(uint32_t width, uint32_t height) {
+    if (hasFlag(_info.flags, TextureFlagBit::DISABLE_RESIZE)) {
+        return;
+    }
+
     if (_info.width != width || _info.height != height) {
         if (_info.levelCount == getLevelCount(_info.width, _info.height)) {
             _info.levelCount = getLevelCount(width, height);

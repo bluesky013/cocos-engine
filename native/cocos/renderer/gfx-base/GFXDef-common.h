@@ -431,6 +431,7 @@ CC_ENUM_BITWISE_OPERATORS(BufferUsageBit);
 
 enum class BufferFlagBit : uint32_t {
     NONE = 0,
+    DISABLE_RESIZE = 0x1,    // Resize is disabled
 };
 using BufferFlags = BufferFlagBit;
 CC_ENUM_BITWISE_OPERATORS(BufferFlagBit);
@@ -479,6 +480,7 @@ enum class TextureFlagBit : uint32_t {
     NONE = 0,
     GEN_MIPMAP = 0x1,     // Generate mipmaps using bilinear filter
     GENERAL_LAYOUT = 0x2, // For inout framebuffer attachments
+    DISABLE_RESIZE = 0x4, // Resize is disabled.
 };
 using TextureFlags = TextureFlagBit;
 CC_ENUM_BITWISE_OPERATORS(TextureFlagBit);
@@ -493,6 +495,13 @@ enum class FormatFeatureBit : uint32_t {
 };
 using FormatFeature = FormatFeatureBit;
 CC_ENUM_BITWISE_OPERATORS(FormatFeatureBit);
+
+enum class DescriptorSetFlagBit : uint32_t {
+    NONE = 0,
+    DYNAMIC_OPTIMIZED = 0x1,  // Use dynamic optimization
+};
+using DescriptorSetFlags = DescriptorSetFlagBit;
+CC_ENUM_BITWISE_OPERATORS(DescriptorSetFlagBit);
 
 enum class SampleCount : uint32_t {
     ONE,                  // Single sample

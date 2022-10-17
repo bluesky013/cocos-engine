@@ -116,6 +116,7 @@ void BufferValidator::doResize(uint32_t size, uint32_t /*count*/) {
 
     // Cannot resize through buffer views.
     CC_ASSERT(!_isBufferView);
+    CC_ASSERT(!hasFlag(_flags, BufferFlagBit::DISABLE_RESIZE));
     CC_ASSERT(size);
 
     for (auto *view : _views) {
@@ -193,7 +194,7 @@ void BufferValidator::removeView(BufferValidator *view) {
 }
 
 void BufferValidator::onExpire() {
-    _source = nullptr; 
+    _source = nullptr;
     _expired = true;
 }
 
