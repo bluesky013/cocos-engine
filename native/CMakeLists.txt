@@ -1087,6 +1087,8 @@ cocos_source_files(
                  cocos/renderer/gfx-base/GFXTexture.cpp
                  cocos/renderer/gfx-base/GFXTexture.h
                  cocos/renderer/gfx-base/GFXDeviceObject.h
+                 cocos/renderer/gfx-base/GFXStreamingPool.h
+                 cocos/renderer/gfx-base/GFXStreamingPool.cpp
                  cocos/renderer/gfx-base/states/GFXGeneralBarrier.cpp
                  cocos/renderer/gfx-base/states/GFXGeneralBarrier.h
                  cocos/renderer/gfx-base/states/GFXSampler.cpp
@@ -1126,6 +1128,8 @@ cocos_source_files(
                  cocos/renderer/gfx-agent/ShaderAgent.cpp
                  cocos/renderer/gfx-agent/TextureAgent.h
                  cocos/renderer/gfx-agent/TextureAgent.cpp
+                 cocos/renderer/gfx-agent/StreamingPoolAgent.h
+                 cocos/renderer/gfx-agent/StreamingPoolAgent.cpp
 
                  cocos/renderer/gfx-validator/BufferValidator.h
                  cocos/renderer/gfx-validator/BufferValidator.cpp
@@ -1159,6 +1163,8 @@ cocos_source_files(
                  cocos/renderer/gfx-validator/TextureValidator.cpp
                  cocos/renderer/gfx-validator/ValidationUtils.h
                  cocos/renderer/gfx-validator/ValidationUtils.cpp
+                 cocos/renderer/gfx-validator/StreamingPoolValidator.h
+                 cocos/renderer/gfx-validator/StreamingPoolValidator.cpp
 
                  cocos/renderer/gfx-empty/EmptyBuffer.h
                  cocos/renderer/gfx-empty/EmptyBuffer.cpp
@@ -1190,6 +1196,8 @@ cocos_source_files(
                  cocos/renderer/gfx-empty/EmptySwapchain.cpp
                  cocos/renderer/gfx-empty/EmptyTexture.h
                  cocos/renderer/gfx-empty/EmptyTexture.cpp
+                 cocos/renderer/gfx-empty/EmptyStreamingPool.h
+                 cocos/renderer/gfx-empty/EmptyStreamingPool.cpp
 
                  cocos/renderer/pipeline/BatchedBuffer.cpp
                  cocos/renderer/pipeline/BatchedBuffer.h
@@ -1650,6 +1658,8 @@ if(CC_USE_VULKAN)
                      cocos/renderer/gfx-vulkan/volk.c
                      cocos/renderer/gfx-vulkan/volk.h
                      cocos/renderer/gfx-vulkan/VKGPURecycleBin.cpp
+                     cocos/renderer/gfx-vulkan/VKStreamingPool.h
+                     cocos/renderer/gfx-vulkan/VKStreamingPool.cpp
                      cocos/renderer/gfx-vulkan/states/VKGeneralBarrier.cpp
                      cocos/renderer/gfx-vulkan/states/VKGeneralBarrier.h
                      cocos/renderer/gfx-vulkan/states/VKSampler.cpp
