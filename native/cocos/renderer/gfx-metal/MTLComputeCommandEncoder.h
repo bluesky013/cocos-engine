@@ -78,8 +78,20 @@ public:
         [_mtlEncoder dispatchThreadgroups:groupsPerGrid threadsPerThreadgroup:threadsPerThreadgroup];
     }
 
+    inline void dispatch(MTLSize groupsPerGrid, MTLSize groupLocalSize) {
+        [_mtlEncoder dispatchThreadgroups:groupsPerGrid threadsPerThreadgroup:groupLocalSize];
+    }
+
     inline void dispatch(id<MTLBuffer> indirectBuffer, NSUInteger offset, MTLSize groupsPerGrid) {
         [_mtlEncoder dispatchThreadgroupsWithIndirectBuffer:indirectBuffer indirectBufferOffset:offset threadsPerThreadgroup:groupsPerGrid];
+    }
+
+    void waitFence(const id<MTLFence> fence) {
+        [_mtlEncoder waitForFence:fence];
+    }
+
+    void updateFence(const id<MTLFence> fence) {
+        [_mtlEncoder updateFence:fence];
     }
 
     inline void endEncoding() {

@@ -41,6 +41,7 @@
 #include "SwapchainValidator.h"
 #include "TextureValidator.h"
 #include "ValidationUtils.h"
+#include "TransientPoolValidator.h"
 
 #include <algorithm>
 #include <cstring>
@@ -135,6 +136,7 @@ void DeviceValidator::doDestroy() {
     DeviceResourceTracker<DescriptorSetLayout>::checkEmpty();
     DeviceResourceTracker<PipelineLayout>::checkEmpty();
     DeviceResourceTracker<PipelineState>::checkEmpty();
+    DeviceResourceTracker<TransientPool>::checkEmpty();
 
     _actor->destroy();
 }
@@ -256,6 +258,13 @@ PipelineState *DeviceValidator::createPipelineState() {
     return result;
 }
 
+TransientPool *DeviceValidator::createTransientPool() {
+    TransientPool *actor = _actor->createTransientPool();
+    TransientPool *result = ccnew TransientPoolValidator(actor);
+    DeviceResourceTracker<TransientPool>::push(result);
+    return result;
+}
+
 Sampler *DeviceValidator::getSampler(const SamplerInfo &info) {
     if (info.addressU != info.addressV || info.addressV != info.addressW) {
         CC_LOG_WARNING("Samplers with different wrapping modes may case reduced performance");
@@ -294,6 +303,10 @@ TextureBarrier *DeviceValidator::getTextureBarrier(const TextureBarrierInfo &inf
     /////////// execute ///////////
 
     return _actor->getTextureBarrier(info);
+}
+
+BufferBarrier *DeviceValidator::getBufferBarrier(const BufferBarrierInfo &info) {
+    return _actor->getBufferBarrier(info);
 }
 
 void DeviceValidator::copyBuffersToTexture(const uint8_t *const *buffers, Texture *dst, const BufferTextureCopy *regions, uint32_t count) {

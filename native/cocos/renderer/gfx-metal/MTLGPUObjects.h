@@ -102,12 +102,16 @@ struct CCMTLGPUShader {
 
     ccstd::vector<CCMTLGPUSubpassAttachment> inputs;
     ccstd::vector<CCMTLGPUSubpassAttachment> outputs;
-
+    
     NSString *shaderSrc = nil;
     bool specializeColor = true;
 
     uint32_t bufferIndex = 0;
     uint32_t samplerIndex = 0;
+    
+    uint32_t localSizeX = 0;
+    uint32_t localSizeY = 0;
+    uint32_t localSizeZ = 0;
 };
 
 struct CCMTLGPUPipelineState {

@@ -1133,7 +1133,11 @@ cocos_source_files(
                  cocos/renderer/gfx-base/GFXSwapchain.h
                  cocos/renderer/gfx-base/GFXTexture.cpp
                  cocos/renderer/gfx-base/GFXTexture.h
+                 cocos/renderer/gfx-base/GFXTransientPool.cpp
+                 cocos/renderer/gfx-base/GFXTransientPool.h
                  cocos/renderer/gfx-base/GFXDeviceObject.h
+                 cocos/renderer/gfx-base/GFXAliasingContext.h
+                 cocos/renderer/gfx-base/GFXAliasingContext.cpp
                  cocos/renderer/gfx-base/states/GFXGeneralBarrier.cpp
                  cocos/renderer/gfx-base/states/GFXGeneralBarrier.h
                  cocos/renderer/gfx-base/states/GFXSampler.cpp
@@ -1177,6 +1181,8 @@ cocos_source_files(
                  cocos/renderer/gfx-agent/ShaderAgent.cpp
                  cocos/renderer/gfx-agent/TextureAgent.h
                  cocos/renderer/gfx-agent/TextureAgent.cpp
+                 cocos/renderer/gfx-agent/TransientPoolAgent.h
+                 cocos/renderer/gfx-agent/TransientPoolAgent.cpp
 
                  cocos/renderer/gfx-validator/BufferValidator.h
                  cocos/renderer/gfx-validator/BufferValidator.cpp
@@ -1210,6 +1216,8 @@ cocos_source_files(
                  cocos/renderer/gfx-validator/TextureValidator.cpp
                  cocos/renderer/gfx-validator/ValidationUtils.h
                  cocos/renderer/gfx-validator/ValidationUtils.cpp
+                 cocos/renderer/gfx-validator/TransientPoolValidator.h
+                 cocos/renderer/gfx-validator/TransientPoolValidator.cpp
 
                  cocos/renderer/gfx-empty/EmptyBuffer.h
                  cocos/renderer/gfx-empty/EmptyBuffer.cpp
@@ -1241,6 +1249,8 @@ cocos_source_files(
                  cocos/renderer/gfx-empty/EmptySwapchain.cpp
                  cocos/renderer/gfx-empty/EmptyTexture.h
                  cocos/renderer/gfx-empty/EmptyTexture.cpp
+                 cocos/renderer/gfx-empty/EmptyTransientPool.h
+                 cocos/renderer/gfx-empty/EmptyTransientPool.cpp
 
                  cocos/renderer/pipeline/BatchedBuffer.cpp
                  cocos/renderer/pipeline/BatchedBuffer.h
@@ -1669,6 +1679,8 @@ if(CC_USE_METAL)
                              cocos/renderer/gfx-metal/MTLSemaphore.h
                              cocos/renderer/gfx-metal/MTLSwapchain.h
                              cocos/renderer/gfx-metal/MTLSwapchain.mm
+                             cocos/renderer/gfx-metal/MTLTransientPool.h
+                             cocos/renderer/gfx-metal/MTLTransientPool.mm
     )
 endif()
 
@@ -1716,6 +1728,8 @@ if(CC_USE_VULKAN)
                      cocos/renderer/gfx-vulkan/VKUtils.h
                      cocos/renderer/gfx-vulkan/volk.c
                      cocos/renderer/gfx-vulkan/volk.h
+                     cocos/renderer/gfx-vulkan/VKTransientPool.cpp
+                     cocos/renderer/gfx-vulkan/VKTransientPool.h
                      cocos/renderer/gfx-vulkan/VKGPURecycleBin.cpp
                      cocos/renderer/gfx-vulkan/states/VKGeneralBarrier.cpp
                      cocos/renderer/gfx-vulkan/states/VKGeneralBarrier.h

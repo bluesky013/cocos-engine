@@ -948,6 +948,7 @@ ccstd::string mu::spirv2MSL(const uint32_t *ir, size_t word_count,
     options.enable_decoration_binding = true;
 #if (CC_PLATFORM == CC_PLATFORM_MACOS)
     options.platform = spirv_cross::CompilerMSL::Options::Platform::macOS;
+    options.set_msl_version(2, 0, 0);
 #elif (CC_PLATFORM == CC_PLATFORM_IOS)
     options.platform = spirv_cross::CompilerMSL::Options::Platform::iOS;
 #endif
@@ -1031,7 +1032,7 @@ ccstd::string mu::spirv2MSL(const uint32_t *ir, size_t word_count,
     }
 
     // avoid conflict index with input attachments.
-    const uint8_t rtOffsets = executionModel == spv::ExecutionModelFragment ? resources.subpass_inputs.size() : 0;
+    const uint8_t rtOffsetsSamplerdImage = executionModel == spv::ExecutionModelFragment ? resources.subpass_inputs.size() : 0;
     for (const auto &sampler : resources.sampled_images) {
         auto set = msl.get_decoration(sampler.id, spv::DecorationDescriptorSet);
         auto binding = msl.get_decoration(sampler.id, spv::DecorationBinding);
@@ -1042,7 +1043,7 @@ ccstd::string mu::spirv2MSL(const uint32_t *ir, size_t word_count,
         }
 
         for (int i = 0; i < size; ++i) {
-            auto mappedBinding = gpuShader->samplerIndex + rtOffsets;
+            auto mappedBinding = gpuShader->samplerIndex + rtOffsetsSamplerdImage;
             newBinding.desc_set = set;
             newBinding.binding = binding + i;
             newBinding.msl_texture = mappedBinding;
@@ -1057,6 +1058,34 @@ ccstd::string mu::spirv2MSL(const uint32_t *ir, size_t word_count,
             ++gpuShader->samplerIndex;
         }
     }
+
+    const uint8_t rtOffsetsStorageImage = executionModel == spv::ExecutionModelFragment ? resources.subpass_inputs.size() + resources.sampled_images.size() : 0;
+    for (const auto &storageImages : resources.storage_images) {
+        auto set = msl.get_decoration(storageImages.id, spv::DecorationDescriptorSet);
+        auto binding = msl.get_decoration(storageImages.id, spv::DecorationBinding);
+        int size = 1;
+        const spirv_cross::SPIRType &type = msl.get_type(storageImages.type_id);
+        if (type.array_size_literal[0]) {
+            size = type.array[0];
+        }
+
+        for (int i = 0; i < size; ++i) {
+            auto mappedBinding = gpuShader->samplerIndex + rtOffsetsStorageImage;
+            newBinding.desc_set = set;
+            newBinding.binding = binding + i;
+            newBinding.msl_texture = mappedBinding;
+            newBinding.msl_sampler = gpuShader->samplerIndex;
+            msl.add_msl_resource_binding(newBinding);
+
+            if (gpuShader->samplers.find(mappedBinding) == gpuShader->samplers.end()) {
+                gpuShader->samplers[mappedBinding] = {storageImages.name, set, binding, newBinding.msl_texture, newBinding.msl_sampler, shaderType};
+            } else {
+                gpuShader->samplers[mappedBinding].stages |= shaderType;
+            }
+            ++gpuShader->samplerIndex;
+        }
+    }
+
 
     if (executionModel == spv::ExecutionModelFragment) {
         gpuShader->outputs.resize(resources.stage_outputs.size());
@@ -1082,6 +1111,13 @@ ccstd::string mu::spirv2MSL(const uint32_t *ir, size_t word_count,
                 gpuShader->inputs[i].set = set;
             }
         }
+    }
+
+    // compute
+    if (executionModel == spv::ExecutionModelGLCompute) {
+        gpuShader->localSizeX = msl.get_execution_mode_argument(spv::ExecutionModeLocalSize, 0U);
+        gpuShader->localSizeY = msl.get_execution_mode_argument(spv::ExecutionModeLocalSize, 1U);
+        gpuShader->localSizeZ = msl.get_execution_mode_argument(spv::ExecutionModeLocalSize, 2U);
     }
 
     // Compile to MSL, ready to give to metal driver.
