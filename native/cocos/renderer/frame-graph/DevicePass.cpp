@@ -251,6 +251,12 @@ void DevicePass::append(const FrameGraph &graph, const PassNode *passNode, ccstd
         logicPass.scissor = passNode->_scissor;
 
         for (const auto &attachment : passNode->_attachments) {
+            if (attachment.desc.samplerCount > sampleCount) {
+                sampleCount = attachment.desc.samplerCount;
+            }
+        }
+
+        for (const auto &attachment : passNode->_attachments) {
             append(graph, attachment, attachments, &subpass.desc, passNode->_reads);
         }
 
@@ -276,7 +282,11 @@ void DevicePass::append(const FrameGraph &graph, const RenderTargetAttachment &a
     uint32_t slot{attachment.desc.slot};
     if (attachment.desc.usage == RenderTargetAttachment::Usage::COLOR) {
         // should fetch actual color slot from current subpass
-        slot = subpass->colors.size() > attachment.desc.slot ? subpass->colors[attachment.desc.slot] : gfx::INVALID_BINDING;
+        if (sampleCount != gfx::SampleCount::ONE && attachment.desc.samplerCount == gfx::SampleCount::ONE) {
+            slot = subpass->resolves.size() > attachment.desc.slot ? subpass->resolves[attachment.desc.slot] : gfx::INVALID_BINDING;
+        } else {
+            slot = subpass->colors.size() > attachment.desc.slot ? subpass->colors[attachment.desc.slot] : gfx::INVALID_BINDING;
+        }
     }
     auto it = std::find_if(attachments->begin(), attachments->end(), [usage, slot](const RenderTargetAttachment &x) {
         return usage == x.desc.usage && slot == x.desc.slot;
@@ -328,7 +338,9 @@ void DevicePass::append(const FrameGraph &graph, const RenderTargetAttachment &a
     }
 
     if (attachment.desc.usage == RenderTargetAttachment::Usage::COLOR) {
-        if (std::find(subpass->colors.begin(), subpass->colors.end(), output->desc.slot) == subpass->colors.end()) {
+        if (sampleCount != attachment.desc.samplerCount && std::find(subpass->resolves.begin(), subpass->resolves.end(), output->desc.slot) == subpass->resolves.end()) {
+            subpass->resolves.push_back(output->desc.slot);
+        } else if (std::find(subpass->colors.begin(), subpass->colors.end(), output->desc.slot) == subpass->colors.end()) {
             subpass->colors.push_back(output->desc.slot);
         }
     } else {
@@ -378,6 +390,7 @@ void DevicePass::begin(gfx::CommandBuffer *cmdBuff) {
         if (attachElem.attachment.desc.usage == RenderTargetAttachment::Usage::COLOR) {
             rpInfo.colorAttachments.emplace_back();
             auto &attachmentInfo = rpInfo.colorAttachments.back();
+            attachmentInfo.sampleCount = attachment->getInfo().samples;
             attachmentInfo.format = attachment->getFormat();
             attachmentInfo.loadOp = attachElem.attachment.desc.loadOp;
             attachmentInfo.storeOp = attachElem.attachment.storeOp;
@@ -387,6 +400,7 @@ void DevicePass::begin(gfx::CommandBuffer *cmdBuff) {
             clearColors.emplace_back(attachElem.attachment.desc.clearColor);
         } else {
             auto &attachmentInfo = rpInfo.depthStencilAttachment;
+            attachmentInfo.sampleCount = attachment->getInfo().samples;
             attachmentInfo.format = attachment->getFormat();
             attachmentInfo.depthLoadOp = attachElem.attachment.desc.loadOp;
             attachmentInfo.stencilLoadOp = attachElem.attachment.desc.loadOp;

@@ -66,6 +66,7 @@ public:
     static RenderPipeline *getInstance();
     static framegraph::StringHandle fgStrHandleOutDepthTexture;
     static framegraph::StringHandle fgStrHandleOutColorTexture;
+    static framegraph::StringHandle fgStrHandleMSAATexture;
     static framegraph::StringHandle fgStrHandlePostprocessPass;
     static framegraph::StringHandle fgStrHandleBloomOutTexture;
     static gfx::Rect getRenderArea(scene::Camera *camera);
