@@ -1,8 +1,7 @@
-/*
- Copyright (c) 2013-2016 Chukong Technologies Inc.
- Copyright (c) 2017-2023 Xiamen Yaji Software Co., Ltd.
+/****************************************************************************
+ Copyright (c) 2021-2023 Xiamen Yaji Software Co., Ltd.
 
- https://www.cocos.com/
+ http://www.cocos.com
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -21,21 +20,26 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
-*/
+****************************************************************************/
 
-import './deprecation';
+#include "core/assets/VideoTexture.h"
+#include "gfx-base/GFXTexture.h"
+#include "gfx-base/GFXDevice.h"
 
-export { Asset } from './asset';
-export { BufferAsset } from './buffer-asset';
-export * from './scripts';
-export { RenderingSubMesh } from './rendering-sub-mesh';
-export { SceneAsset } from './scene-asset';
-export { default as TextAsset } from './text-asset';
-export { default as JsonAsset } from './json-asset';
-export { ImageAsset } from './image-asset';
-export { Texture2D } from './texture-2d';
-export { TextureCube } from './texture-cube';
-export { VideoTexture } from './video-texture';
-export { EffectAsset } from './effect-asset';
-export { Material } from './material';
-export { RenderTexture } from './render-texture';
+namespace cc {
+
+void VideoTexture::initialize(const IVideoTextureCreateInfo &info) {
+    gfx::TextureInfo texInfo = {};
+    texInfo.usage  = gfx::TextureUsage::SAMPLED;
+    texInfo.format = gfx::Format::RGBA8;
+    texInfo.width  = info.width;
+    texInfo.height = info.height;
+    texInfo.externalRes = reinterpret_cast<void *>(info.externalRes);
+    _gfxTexture = gfx::Device::getInstance()->createTexture(texInfo);
+}
+
+gfx::Texture *VideoTexture::getGFXTexture() const {
+    return _gfxTexture;
+}
+
+} // namespace cc

@@ -665,7 +665,6 @@ SE_BIND_PROP_GET(js_cc_render_PipelineRuntime_shadingScale_get)
 bool js_register_cc_render_PipelineRuntime(se::Object* obj) {
     auto* cls = se::Class::create("PipelineRuntime", obj, nullptr, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     cls->defineProperty("device", _SE(js_cc_render_PipelineRuntime_device_get), nullptr); 
     cls->defineProperty("macros", _SE(js_cc_render_PipelineRuntime_macros_get), nullptr); 
     cls->defineProperty("globalDSManager", _SE(js_cc_render_PipelineRuntime_globalDSManager_get), nullptr); 
@@ -759,7 +758,6 @@ SE_BIND_PROP_GET(js_cc_render_RenderNode_name_get)
 bool js_register_cc_render_RenderNode(se::Object* obj) {
     auto* cls = se::Class::create("RenderNode", obj, nullptr, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     cls->defineProperty("name", _SE(js_cc_render_RenderNode_name_get), _SE(js_cc_render_RenderNode_name_set)); 
     
     
@@ -1148,7 +1146,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_Setter)
 bool js_register_cc_render_Setter(se::Object* obj) {
     auto* cls = se::Class::create("Setter", obj, __jsb_cc_render_RenderNode_proto, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("setMat4", _SE(js_cc_render_Setter_setMat4)); 
     cls->defineFunction("setQuaternion", _SE(js_cc_render_Setter_setQuaternion)); 
@@ -1595,7 +1592,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_RasterQueueBuilder)
 bool js_register_cc_render_RasterQueueBuilder(se::Object* obj) {
     auto* cls = se::Class::create("RasterQueueBuilder", obj, __jsb_cc_render_Setter_proto, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("setViewport", _SE(js_cc_render_RasterQueueBuilder_setViewport)); 
     cls->defineFunction("addSceneOfCamera", _SE(js_cc_render_RasterQueueBuilder_addSceneOfCamera)); 
@@ -1795,7 +1791,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_RasterPassBuilder)
 bool js_register_cc_render_RasterPassBuilder(se::Object* obj) {
     auto* cls = se::Class::create("RasterPassBuilder", obj, __jsb_cc_render_Setter_proto, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("addRasterView", _SE(js_cc_render_RasterPassBuilder_addRasterView)); 
     cls->defineFunction("addComputeView", _SE(js_cc_render_RasterPassBuilder_addComputeView)); 
@@ -1873,7 +1868,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_ComputeQueueBuilder)
 bool js_register_cc_render_ComputeQueueBuilder(se::Object* obj) {
     auto* cls = se::Class::create("ComputeQueueBuilder", obj, __jsb_cc_render_Setter_proto, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("addDispatch", _SE(js_cc_render_ComputeQueueBuilder_addDispatch)); 
     
@@ -1965,7 +1959,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_ComputePassBuilder)
 bool js_register_cc_render_ComputePassBuilder(se::Object* obj) {
     auto* cls = se::Class::create("ComputePassBuilder", obj, __jsb_cc_render_Setter_proto, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("addComputeView", _SE(js_cc_render_ComputePassBuilder_addComputeView)); 
     cls->defineFunction("addQueue", _SE(js_cc_render_ComputePassBuilder_addQueue)); 
@@ -2026,7 +2019,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_MovePassBuilder)
 bool js_register_cc_render_MovePassBuilder(se::Object* obj) {
     auto* cls = se::Class::create("MovePassBuilder", obj, __jsb_cc_render_RenderNode_proto, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("addPair", _SE(js_cc_render_MovePassBuilder_addPair)); 
     
@@ -2086,7 +2078,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_CopyPassBuilder)
 bool js_register_cc_render_CopyPassBuilder(se::Object* obj) {
     auto* cls = se::Class::create("CopyPassBuilder", obj, __jsb_cc_render_RenderNode_proto, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("addPair", _SE(js_cc_render_CopyPassBuilder_addPair)); 
     
@@ -2267,7 +2258,6 @@ SE_BIND_PROP_GET(js_cc_render_SceneVisitor_pipelineSceneData_get)
 bool js_register_cc_render_SceneVisitor(se::Object* obj) {
     auto* cls = se::Class::create("SceneVisitor", obj, nullptr, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     cls->defineProperty("pipelineSceneData", _SE(js_cc_render_SceneVisitor_pipelineSceneData_get), nullptr); 
     
     cls->defineFunction("setViewport", _SE(js_cc_render_SceneVisitor_setViewport)); 
@@ -2385,7 +2375,6 @@ SE_BIND_PROP_GET(js_cc_render_SceneTask_taskType_get)
 bool js_register_cc_render_SceneTask(se::Object* obj) {
     auto* cls = se::Class::create("SceneTask", obj, nullptr, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     cls->defineProperty("taskType", _SE(js_cc_render_SceneTask_taskType_get), nullptr); 
     
     cls->defineFunction("start", _SE(js_cc_render_SceneTask_start)); 
@@ -2450,7 +2439,6 @@ SE_BIND_FUNC(js_cc_render_SceneTransversal_transverse)
 bool js_register_cc_render_SceneTransversal(se::Object* obj) {
     auto* cls = se::Class::create("SceneTransversal", obj, nullptr, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("transverse", _SE(js_cc_render_SceneTransversal_transverse)); 
     
@@ -2773,7 +2761,6 @@ SE_BIND_FUNC(js_cc_render_LayoutGraphBuilder_print)
 bool js_register_cc_render_LayoutGraphBuilder(se::Object* obj) {
     auto* cls = se::Class::create("LayoutGraphBuilder", obj, nullptr, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("clear", _SE(js_cc_render_LayoutGraphBuilder_clear)); 
     cls->defineFunction("addRenderStage", _SE(js_cc_render_LayoutGraphBuilder_addRenderStage)); 
@@ -3680,7 +3667,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_Pipeline)
 bool js_register_cc_render_Pipeline(se::Object* obj) {
     auto* cls = se::Class::create("Pipeline", obj, __jsb_cc_render_PipelineRuntime_proto, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     cls->defineProperty("layoutGraphBuilder", _SE(js_cc_render_Pipeline_layoutGraphBuilder_get), nullptr); 
     
     cls->defineFunction("beginSetup", _SE(js_cc_render_Pipeline_beginSetup)); 
@@ -3762,7 +3748,6 @@ SE_BIND_FUNC(js_cc_render_PipelineBuilder_setup)
 bool js_register_cc_render_PipelineBuilder(se::Object* obj) {
     auto* cls = se::Class::create("PipelineBuilder", obj, nullptr, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("setup", _SE(js_cc_render_PipelineBuilder_setup)); 
     
@@ -3860,7 +3845,6 @@ SE_BIND_FUNC(js_cc_render_RenderingModule_getPhaseID)
 bool js_register_cc_render_RenderingModule(se::Object* obj) {
     auto* cls = se::Class::create("RenderingModule", obj, nullptr, nullptr); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     cls->defineFunction("getPassID", _SE(js_cc_render_RenderingModule_getPassID)); 
     cls->defineFunction("getPhaseID", _SE(js_cc_render_RenderingModule_getPhaseID)); 
@@ -3986,7 +3970,6 @@ SE_BIND_FINALIZE_FUNC(js_delete_cc_render_Factory)
 bool js_register_cc_render_Factory(se::Object* obj) {
     auto* cls = se::Class::create("Factory", obj, nullptr, _SE(js_new_cc_render_Factory)); 
     
-    cls->defineStaticProperty("__isJSB", se::Value(true), se::PropertyAttribute::READ_ONLY | se::PropertyAttribute::DONT_ENUM | se::PropertyAttribute::DONT_DELETE);
     
     
     

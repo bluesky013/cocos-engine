@@ -1,6 +1,5 @@
 /*
- Copyright (c) 2013-2016 Chukong Technologies Inc.
- Copyright (c) 2017-2023 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2021-2023 Xiamen Yaji Software Co., Ltd.
 
  https://www.cocos.com/
 
@@ -22,20 +21,13 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 */
+import { ccclass, type } from 'cc.decorator';
+import { TextureBase } from './texture-base.jsb';
+import { js, cclegacy } from '../../core';
 
-import './deprecation';
+const VideoTextureProto: any = jsb.VideoTexture.prototype;
 
-export { Asset } from './asset';
-export { BufferAsset } from './buffer-asset';
-export * from './scripts';
-export { RenderingSubMesh } from './rendering-sub-mesh';
-export { SceneAsset } from './scene-asset';
-export { default as TextAsset } from './text-asset';
-export { default as JsonAsset } from './json-asset';
-export { ImageAsset } from './image-asset';
-export { Texture2D } from './texture-2d';
-export { TextureCube } from './texture-cube';
-export { VideoTexture } from './video-texture';
-export { EffectAsset } from './effect-asset';
-export { Material } from './material';
-export { RenderTexture } from './render-texture';
+export type VideoTexture = jsb.VideoTexture;
+export const VideoTexture: any = jsb.VideoTexture;
+
+cclegacy.VideoTexture = jsb.VideoTexture;

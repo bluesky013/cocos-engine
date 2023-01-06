@@ -41,6 +41,7 @@
 #include "core/assets/EffectAsset.h"
 #include "core/assets/ImageAsset.h"
 #include "core/assets/Material.h"
+#include "core/assets/VideoTexture.h"
 #include "core/builtin/BuiltinResMgr.h"
 #include "3d/assets/Morph.h"
 #include "3d/assets/Mesh.h"
@@ -169,6 +170,20 @@ bool sevalue_to_native(const se::Value &from, cc::ITexture2DCreateInfo * to, se:
 JSB_REGISTER_OBJECT_TYPE(cc::Texture2D);
 extern se::Object *__jsb_cc_Texture2D_proto; // NOLINT
 extern se::Class * __jsb_cc_Texture2D_class; // NOLINT
+
+
+JSB_REGISTER_OBJECT_TYPE(cc::IVideoTextureCreateInfo);
+extern se::Object *__jsb_cc_IVideoTextureCreateInfo_proto; // NOLINT
+extern se::Class * __jsb_cc_IVideoTextureCreateInfo_class; // NOLINT
+
+
+template<>
+bool sevalue_to_native(const se::Value &from, cc::IVideoTextureCreateInfo * to, se::Object *ctx);
+
+
+JSB_REGISTER_OBJECT_TYPE(cc::VideoTexture);
+extern se::Object *__jsb_cc_VideoTexture_proto; // NOLINT
+extern se::Class * __jsb_cc_VideoTexture_class; // NOLINT
 
 
 JSB_REGISTER_OBJECT_TYPE(cc::ITextureCubeMipmap);

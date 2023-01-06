@@ -1995,6 +1995,8 @@ cocos_source_files(
     cocos/core/assets/TextAsset.h
     cocos/core/assets/Texture2D.cpp
     cocos/core/assets/Texture2D.h
+    cocos/core/assets/VideoTexture.cpp
+    cocos/core/assets/VideoTexture.h
     cocos/core/assets/TextureBase.cpp
     cocos/core/assets/TextureBase.h
     cocos/core/assets/TextureCube.cpp

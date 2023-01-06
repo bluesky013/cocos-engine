@@ -14,6 +14,7 @@
 #include "core/assets/EffectAsset.h"
 #include "core/assets/ImageAsset.h"
 #include "core/assets/Material.h"
+#include "core/assets/VideoTexture.h"
 #include "core/builtin/BuiltinResMgr.h"
 #include "3d/assets/Morph.h"
 #include "3d/assets/Mesh.h"
@@ -45,7 +46,7 @@
 //  %ignore your_namespace::your_class_name::your_method_name;
 //  %ignore your_namespace::your_class_name::your_attribute_name;
 //
-// Note: 
+// Note:
 //  1. 'Ignore Section' should be placed before attribute definition and %import/%include
 //  2. namespace is needed
 //
@@ -71,7 +72,7 @@
 //  %rename(rename_to_name) your_namespace::original_class_name;
 //  %rename(rename_to_name) your_namespace::original_class_name::method_name;
 //  %rename(rename_to_name) your_namespace::original_class_name::attribute_name;
-// 
+//
 // Note:
 //  1. 'Rename Section' should be placed before attribute definition and %import/%include
 //  2. namespace is needed
@@ -115,7 +116,7 @@
 //    %attribute_writeonly(your_namespace::your_class_name, cpp_member_variable_type, js_property_name, cpp_setter_name)
 //
 // Note:
-//  1. Don't need to add 'const' prefix for cpp_member_variable_type 
+//  1. Don't need to add 'const' prefix for cpp_member_variable_type
 //  2. The return type of getter should keep the same as the type of setter's parameter
 //  3. If using reference, add '&' suffix for cpp_member_variable_type to avoid generated code using value assignment
 //  4. 'Attribute Section' should be placed before 'Import Section' and 'Include Section'
@@ -180,7 +181,7 @@
 
 // ----- Import Section ------
 // Brief: Import header files which are depended by 'Include Section'
-// Note: 
+// Note:
 //   %import "your_header_file.h" will not generate code for that header file
 //
 %import "base/Macros.h"
@@ -223,6 +224,7 @@
 %include "core/assets/TextureBase.h"
 %include "core/assets/SimpleTexture.h"
 %include "core/assets/Texture2D.h"
+%include "core/assets/VideoTexture.h"
 %include "core/assets/TextureCube.h"
 %include "core/assets/RenderTexture.h"
 %include "core/assets/BufferAsset.h"
