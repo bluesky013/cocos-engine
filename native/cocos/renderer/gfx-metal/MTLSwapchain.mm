@@ -53,45 +53,46 @@ CCMTLSwapchain::~CCMTLSwapchain() {
 }
 
 void CCMTLSwapchain::doInit(const SwapchainInfo& info) {
-    _gpuSwapchainObj = ccnew CCMTLGPUSwapChainObject;
-
     //----------------------acquire layer-----------------------------------
+    if (info.windowHandle != nullptr) {
 #if CC_EDITOR
-    CAMetalLayer* layer = (CAMetalLayer*)info.windowHandle;
-    if (!layer.device) {
-        layer.device = MTLCreateSystemDefaultDevice();
-    }
+        CAMetalLayer* layer = (CAMetalLayer*)info.windowHandle;
+        if (!layer.device) {
+            layer.device = MTLCreateSystemDefaultDevice();
+        }
 #else
-    auto *view = (CCView *)info.windowHandle;
-    CAMetalLayer *layer = static_cast<CAMetalLayer *>(view.layer);
+        auto* view = (CCView*)info.windowHandle;
+        CAMetalLayer* layer = static_cast<CAMetalLayer*>(view.layer);
 #endif
 
-    if (layer.pixelFormat == MTLPixelFormatInvalid) {
-        layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-    }
-    layer.framebufferOnly = NO;
-    //setDisplaySyncEnabled : physic device refresh rate.
-    //setPresentsWithTransaction : Core Animation transactions update rate.
-    auto syncModeFunc = [&](BOOL sync, BOOL transaction) {
+        if (layer.pixelFormat == MTLPixelFormatInvalid) {
+            layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+        }
+        layer.framebufferOnly = NO;
+        // setDisplaySyncEnabled : physic device refresh rate.
+        // setPresentsWithTransaction : Core Animation transactions update rate.
+        auto syncModeFunc = [&](BOOL sync, BOOL transaction) {
 #if CC_PLATFORM == CC_PLATFORM_MACOS
-        [layer setDisplaySyncEnabled:sync];
+            [layer setDisplaySyncEnabled:sync];
 #endif
-        [layer setPresentsWithTransaction:transaction];
-    };
-    switch (_vsyncMode) {
-        case VsyncMode::OFF:
-            syncModeFunc(NO, NO);
-            break;
-        case VsyncMode::ON:
-            syncModeFunc(YES, YES);
-        case VsyncMode::RELAXED:
-        case VsyncMode::MAILBOX:
-        case VsyncMode::HALF:
-            syncModeFunc(YES, NO);
-        default:
-            break;
+            [layer setPresentsWithTransaction:transaction];
+        };
+        switch (_vsyncMode) {
+            case VsyncMode::OFF:
+                syncModeFunc(NO, NO);
+                break;
+            case VsyncMode::ON:
+                syncModeFunc(YES, YES);
+            case VsyncMode::RELAXED:
+            case VsyncMode::MAILBOX:
+            case VsyncMode::HALF:
+                syncModeFunc(YES, NO);
+            default:
+                break;
+        }
+        _gpuSwapchainObj = ccnew CCMTLGPUSwapChainObject;
+        _gpuSwapchainObj->mtlLayer = layer;
     }
-    _gpuSwapchainObj->mtlLayer = layer;
 
     //    MTLPixelFormatBGRA8Unorm
     //    MTLPixelFormatBGRA8Unorm_sRGB
@@ -109,7 +110,7 @@ void CCMTLSwapchain::doInit(const SwapchainInfo& info) {
     _depthStencilTexture = ccnew CCMTLTexture;
 
     SwapchainTextureInfo textureInfo;
-    textureInfo.swapchain = this;
+    textureInfo.swapchain = _gpuSwapchainObj != nullptr ? this : nullptr;
     textureInfo.format = colorFmt;
     textureInfo.width = info.width;
     textureInfo.height = info.height;
@@ -155,17 +156,20 @@ CCMTLTexture* CCMTLSwapchain::depthStencilTexture() {
 }
 
 id<CAMetalDrawable> CCMTLSwapchain::currentDrawable() {
-    return _gpuSwapchainObj->currentDrawable;
+    return _gpuSwapchainObj ? _gpuSwapchainObj->currentDrawable : nil;
 }
 
 void CCMTLSwapchain::release() {
-    _gpuSwapchainObj->currentDrawable = nil;
+    if (_gpuSwapchainObj) {
+        _gpuSwapchainObj->currentDrawable = nil;
+    }
+
     static_cast<CCMTLTexture*>(_colorTexture.get())->update();
 }
 
 void CCMTLSwapchain::acquire() {
     // hang on here if next drawable not available
-    while (!_gpuSwapchainObj->currentDrawable) {
+    while (_gpuSwapchainObj && !_gpuSwapchainObj->currentDrawable) {
         _gpuSwapchainObj->currentDrawable = [_gpuSwapchainObj->mtlLayer nextDrawable];
         static_cast<CCMTLTexture*>(_colorTexture.get())->update();
     }

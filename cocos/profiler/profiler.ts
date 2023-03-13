@@ -27,7 +27,18 @@ import { TEST, EDITOR } from 'internal:constants';
 import { MeshRenderer } from '../3d/framework/mesh-renderer';
 import { createMesh } from '../3d/misc';
 import { Material } from '../asset/assets/material';
-import { Format, TextureType, TextureUsageBit, Texture, TextureInfo, Device, BufferTextureCopy, Swapchain, deviceManager } from '../gfx';
+import {
+    Format,
+    TextureType,
+    TextureUsageBit,
+    Texture,
+    TextureInfo,
+    Device,
+    BufferTextureCopy,
+    Swapchain,
+    deviceManager,
+    SurfaceTransform,
+} from '../gfx';
 import { Layers } from '../scene-graph';
 import { Node } from '../scene-graph/node';
 import { ICounterOption } from './counter';
@@ -172,7 +183,9 @@ export class Profiler extends System {
             if (!this._device) {
                 const root = cclegacy.director.root as Root;
                 this._device = deviceManager.gfxDevice;
-                this._swapchain = root.mainWindow!.swapchain;
+                if (root.mainWindow) {
+                    this._swapchain = root.mainWindow.swapchain;
+                }
             }
 
             this.generateCanvas();
@@ -386,7 +399,7 @@ export class Profiler extends System {
             return;
         }
 
-        const surfaceTransform = this._swapchain!.surfaceTransform;
+        const surfaceTransform = this._swapchain ? this._swapchain.surfaceTransform : SurfaceTransform.IDENTITY;
         const clipSpaceSignY = this._device!.capabilities.clipSpaceSignY;
         if (surfaceTransform !== this.offsetData[3]) {
             const preTransform = preTransforms[surfaceTransform];

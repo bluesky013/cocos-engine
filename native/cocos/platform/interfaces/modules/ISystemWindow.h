@@ -104,6 +104,8 @@ public:
     virtual void setCursorEnabled(bool value) = 0;
 
     virtual void copyTextToClipboard(const ccstd::string& text) = 0;
+
+    virtual bool isDummyWindow() const { return false; }
 };
 
 } // namespace cc

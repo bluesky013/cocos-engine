@@ -42,6 +42,7 @@ public:
     void processEvent(bool *quit) override {}
 
     ISystemWindow *createWindow(const ISystemWindowInfo &info) override;
+    ISystemWindow *createDummyWindow(const ISystemWindowInfo &info) override;
     ISystemWindow *getWindow(uint32_t windowId) const override;
     const SystemWindowMap &getWindows() const override { return _windows; }
 

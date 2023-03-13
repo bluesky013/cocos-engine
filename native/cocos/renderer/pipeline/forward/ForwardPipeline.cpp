@@ -173,8 +173,8 @@ bool ForwardPipeline::activeRenderer(gfx::Swapchain *swapchain) {
     uint32_t ibData[] = {0, 1, 2, 1, 3, 2};
     _quadIB->update(ibData, sizeof(ibData));
 
-    _width = swapchain->getWidth();
-    _height = swapchain->getHeight();
+    _width = 1;
+    _height = 1;
     return true;
 }
 

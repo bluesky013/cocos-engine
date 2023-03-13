@@ -521,6 +521,8 @@ cocos_source_files(
     cocos/platform/BasePlatform.h
     cocos/platform/UniversalPlatform.cpp
     cocos/platform/UniversalPlatform.h
+    cocos/platform/DummySystemWindow.cpp
+    cocos/platform/DummySystemWindow.h
 )
 if(WINDOWS)
     cocos_source_files(

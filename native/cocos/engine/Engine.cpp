@@ -76,9 +76,9 @@ bool setCanvasCallback(se::Object * /*global*/) {
     se::AutoHandleScope scope;
     se::ScriptEngine *se = se::ScriptEngine::getInstance();
     auto *window = CC_GET_MAIN_SYSTEM_WINDOW();
-    auto handler = window->getWindowHandle();
-    auto viewSize = window->getViewSize();
-    auto dpr = cc::BasePlatform::getPlatform()->getInterface<cc::IScreen>()->getDevicePixelRatio();
+    auto handler = window != nullptr ? window->getWindowHandle() : 0;
+    auto viewSize = window != nullptr ? window->getViewSize() : cc::Size{1, 1};
+    auto dpr = window != nullptr ? cc::BasePlatform::getPlatform()->getInterface<cc::IScreen>()->getDevicePixelRatio() : 1.f;
 
     std::stringstream ss;
     {

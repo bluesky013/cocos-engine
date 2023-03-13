@@ -34,9 +34,9 @@ Swapchain::Swapchain()
 Swapchain::~Swapchain() = default;
 
 void Swapchain::initialize(const SwapchainInfo &info) {
-#if !defined(CC_SERVER_MODE)
-    CC_ASSERT(info.windowHandle);
-#endif
+//#if !defined(CC_SERVER_MODE)
+//    CC_ASSERT(info.windowHandle);
+//#endif
 
     _windowId = info.windowId;
     _windowHandle = info.windowHandle;

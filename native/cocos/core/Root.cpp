@@ -300,6 +300,7 @@ public:
 } // namespace
 
 bool Root::setRenderPipeline(pipeline::RenderPipeline *rppl /* = nullptr*/) {
+    auto *swapChain = _mainRenderWindow != nullptr ? _mainRenderWindow->getSwapchain() : nullptr;
     if (rppl) {
         if (dynamic_cast<pipeline::DeferredPipeline *>(rppl) != nullptr) {
             _useDeferredPipeline = true;
@@ -316,14 +317,14 @@ bool Root::setRenderPipeline(pipeline::RenderPipeline *rppl /* = nullptr*/) {
         }
         _pipeline->setBloomEnabled(false);
 
-        if (!_pipeline->activate(_mainRenderWindow->getSwapchain())) {
+        if (!_pipeline->activate(swapChain)) {
             _pipeline = nullptr;
             return false;
         }
     } else {
         CC_ASSERT(!_pipelineRuntime);
         _pipelineRuntime.reset(render::Factory::createPipeline());
-        if (!_pipelineRuntime->activate(_mainRenderWindow->getSwapchain())) {
+        if (!_pipelineRuntime->activate(swapChain)) {
             _pipelineRuntime->destroy();
             _pipelineRuntime.reset();
             return false;

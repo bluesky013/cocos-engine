@@ -65,6 +65,11 @@ public:
     virtual ISystemWindow *createWindow(const ISystemWindowInfo &info) = 0;
 
     /**
+     * Create a dummy system window
+     */
+    virtual ISystemWindow *createDummyWindow(const ISystemWindowInfo &info) = 0;
+
+    /**
      * Find an ISystemWindow object
      * @param windowId unique ID of window
      */

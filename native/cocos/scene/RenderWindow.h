@@ -119,6 +119,8 @@ public:
 
     inline const ccstd::vector<IntrusivePtr<Camera>> &getCameras() const { return _cameras; }
 
+    gfx::Texture *getColorTexture(uint32_t index) const { return _colorTextures.at(index); }
+
 private:
     void generateFrameBuffer();
 

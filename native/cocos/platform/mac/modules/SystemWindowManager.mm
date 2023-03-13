@@ -25,9 +25,11 @@
 
 #include "SystemWindowManager.h"
 #include "platform/BasePlatform.h"
+#include "platform/DummySystemWindow.h"
 #include "platform/SDLHelper.h"
 #include "platform/interfaces/modules/ISystemWindowManager.h"
 #include "platform/mac/modules/SystemWindow.h"
+#include "base/memory/Memory.h"
 
 namespace cc {
 
@@ -52,6 +54,14 @@ ISystemWindow *SystemWindowManager::createWindow(const cc::ISystemWindowInfo &in
         _windows[_nextWindowId] = std::shared_ptr<ISystemWindow>(window);
         _nextWindowId++;
     }
+    return window;
+}
+
+ISystemWindow *SystemWindowManager::createDummyWindow(const ISystemWindowInfo &info) {
+    auto *window = ccnew DummySystemWindow(_nextWindowId, info.externalHandle);
+    window->createWindow(info.title.c_str(), info.x, info.y, info.width, info.height, info.flags);
+    _windows[_nextWindowId] = std::shared_ptr<ISystemWindow>(window);
+    _nextWindowId++;
     return window;
 }
 
