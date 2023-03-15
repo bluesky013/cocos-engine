@@ -464,31 +464,22 @@ struct StaticAttribute;
 
 template <typename T, typename... ARGS>
 struct Constructor<TypeList<T, ARGS...>> : ConstructorBase {
-    // no `if constexpr`, more code is needed...
-    template <bool MapArgs>
-    struct ConstructFn;
-    template <>
-    struct ConstructFn<true> {
-        template <typename Self, typename... ARGS2, size_t... indexes>
-        static auto invoke(Self *self, se::Object *thisObj, std::tuple<ARGS2...> &args, std::index_sequence<indexes...> n) {
-            using type_mapping = TypeMapping<TypeList<ARGS...>>;
-            using map_list_type = typename type_mapping::mapping_list;
-            using map_tuple_type = typename type_mapping::result_types_tuple_mutable;
+    template <typename Self, typename... ARGS2, size_t... indexes>
+    static auto invoke1(Self *self, se::Object *thisObj, std::tuple<ARGS2...> &args, std::index_sequence<indexes...> n) {
+        using type_mapping = TypeMapping<TypeList<ARGS...>>;
+        using map_list_type = typename type_mapping::mapping_list;
+        using map_tuple_type = typename type_mapping::result_types_tuple_mutable;
 
-            static_assert(map_list_type::COUNT == sizeof...(ARGS), "type mapping incorrect");
+        static_assert(map_list_type::COUNT == sizeof...(ARGS), "type mapping incorrect");
 
-            map_tuple_type remapArgs = mapTupleArguments<map_tuple_type, type_mapping>(thisObj, args, std::make_index_sequence<type_mapping::FULL_ARGN>{});
+        map_tuple_type remapArgs = mapTupleArguments<map_tuple_type, type_mapping>(thisObj, args, std::make_index_sequence<type_mapping::FULL_ARGN>{});
 
-            return self->constructWithTuple(remapArgs, n);
-        }
-    };
-    template <>
-    struct ConstructFn<false> {
-        template <typename Self, typename... ARGS2, size_t... indexes>
-        static auto invoke(Self *self, se::Object * /*thisObj*/, std::tuple<ARGS2...> &args, std::index_sequence<indexes...> n) {
-            return self->constructWithTupleValue(args, n);
-        }
-    };
+        return self->constructWithTuple(remapArgs, n);
+    }
+
+    static auto invoke2(Self *self, se::Object * /*thisObj*/, std::tuple<ARGS2...> &args, std::index_sequence<indexes...> n) {
+        return self->constructWithTupleValue(args, n);
+    }
 
     bool construct(se::State &state) override {
         using type_mapping = TypeMapping<TypeList<ARGS...>>;
@@ -498,7 +489,11 @@ struct Constructor<TypeList<T, ARGS...>> : ConstructorBase {
         args_holder_type args{};
         const auto &jsArgs = state.args();
         convert_js_args_to_tuple(jsArgs, args, thisObj, std::make_index_sequence<type_mapping::NEW_ARGN>());
-        self = ConstructFn<type_mapping::NEED_REMAP>::invoke(this, thisObj, args, std::make_index_sequence<type_mapping::FULL_ARGN>{});
+        if constexpr (type_mapping::NEED_REMAP) {
+            invoke1(this, thisObj, args, std::make_index_sequence<type_mapping::FULL_ARGN>{});
+        } else {
+            invoke2(this, thisObj, args, std::make_index_sequence<type_mapping::FULL_ARGN>{});
+        }
         state.thisObject()->setPrivateObject(self);
         return true;
     }
