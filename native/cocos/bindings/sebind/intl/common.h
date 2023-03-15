@@ -477,6 +477,7 @@ struct Constructor<TypeList<T, ARGS...>> : ConstructorBase {
         return self->constructWithTuple(remapArgs, n);
     }
 
+    template <typename Self, typename... ARGS2, size_t... indexes>
     static auto invoke2(Self *self, se::Object * /*thisObj*/, std::tuple<ARGS2...> &args, std::index_sequence<indexes...> n) {
         return self->constructWithTupleValue(args, n);
     }
