@@ -107,7 +107,7 @@ void GLES3Swapchain::doInit(const SwapchainInfo &info) {
 #endif
 
     EGLSurfaceType surfaceType = _xr ? _xr->acquireEGLSurfaceType(getTypedID()) : EGLSurfaceType::WINDOW;
-    if (surfaceType == EGLSurfaceType::PBUFFER) {
+    if (window == nullptr || surfaceType == EGLSurfaceType::PBUFFER) {
         EGLint pbufferAttribs[]{
             EGL_WIDTH, 1,
             EGL_HEIGHT, 1,

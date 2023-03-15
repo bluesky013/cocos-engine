@@ -51,13 +51,10 @@ ISystemWindow *SystemWindowManager::getWindow(uint32_t windowId) const {
 ISystemWindow *SystemWindowManager::createWindow(const cc::ISystemWindowInfo &info) {
     ISystemWindow *window = BasePlatform::getPlatform()->createNativeWindow(_nextWindowId, info.externalHandle);
     if (window) {
-        if (!info.externalHandle) {
-            window->createWindow(info.title.c_str(), info.x, info.y, info.width, info.height, info.flags);
-        }
+        window->createWindow(info.title.c_str(), info.x, info.y, info.width, info.height, info.flags);
         _windows[_nextWindowId] = std::shared_ptr<ISystemWindow>(window);
         _nextWindowId++;
     }
     return window;
 }
-
 } // namespace cc

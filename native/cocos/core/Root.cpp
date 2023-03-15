@@ -420,7 +420,7 @@ void Root::frameMoveEnd() {
         std::stable_sort(_cameraList.begin(), _cameraList.end(), [](const auto *a, const auto *b) {
             return a->getPriority() < b->getPriority();
         });
-#if !defined(CC_SERVER_MODE)
+//#if !defined(CC_SERVER_MODE)
 
     #if CC_USE_GEOMETRY_RENDERER
         for (auto *camera : _cameraList) {
@@ -436,7 +436,7 @@ void Root::frameMoveEnd() {
         emit<BeforeRender>();
         _pipelineRuntime->render(_cameraList);
         emit<AfterRender>();
-#endif
+//#endif
         _device->present();
     }
 
