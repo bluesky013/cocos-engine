@@ -63,8 +63,10 @@ void GLES3Swapchain::doInit(const SwapchainInfo &info) {
     const auto *context = GLES3Device::getInstance()->context();
     _gpuSwapchain = ccnew GLES3GPUSwapchain;
 #if CC_PLATFORM == CC_PLATFORM_LINUX
+    static constexpr EGLNativeWindowType NULL_WINDOW = 0;
     auto window = reinterpret_cast<EGLNativeWindowType>(info.windowHandle);
 #else
+    static constexpr EGLNativeWindowType NULL_WINDOW = nullptr;
     auto *window = reinterpret_cast<EGLNativeWindowType>(info.windowHandle);
 #endif
 
@@ -107,7 +109,7 @@ void GLES3Swapchain::doInit(const SwapchainInfo &info) {
 #endif
 
     EGLSurfaceType surfaceType = _xr ? _xr->acquireEGLSurfaceType(getTypedID()) : EGLSurfaceType::WINDOW;
-    if (window == nullptr || surfaceType == EGLSurfaceType::PBUFFER) {
+    if (window == NULL_WINDOW || surfaceType == EGLSurfaceType::PBUFFER) {
         EGLint pbufferAttribs[]{
             EGL_WIDTH, 1,
             EGL_HEIGHT, 1,
