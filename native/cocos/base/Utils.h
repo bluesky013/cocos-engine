@@ -31,6 +31,7 @@
 #include <cerrno>
 #include <climits>
 #include <limits>
+#include <cstring>
 #include "base/Macros.h"
 #include "base/TypeDef.h"
 #include "base/std/container/string.h"

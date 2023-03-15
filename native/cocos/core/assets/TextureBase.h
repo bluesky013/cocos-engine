@@ -55,19 +55,19 @@ public:
      * @en The pixel format enum.
      * @zh 像素格式枚举类型
      */
-    using PixelFormat = PixelFormat;
+    using PixelFormat = cc::PixelFormat;
 
     /**
      * @en The wrap mode enum.
      * @zh 环绕模式枚举类型
      */
-    using WrapMode = WrapMode;
+    using WrapMode = cc::WrapMode;
 
     /**
      * @en The texture filter mode enum
      * @zh 纹理过滤模式枚举类型
      */
-    using Filter = Filter;
+    using Filter = cc::Filter;
 
     TextureBase(); // NOTE: Editor needs to invoke 'new TextureBase' in JS, so we need to make the constructor public.
     ~TextureBase() override;
