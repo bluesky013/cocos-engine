@@ -25,7 +25,7 @@
 #pragma once
 
 #if (CC_PLATFORM != CC_PLATFORM_IOS)
-    #if (CC_PLATFORM == CC_PLATFORM_QNX)
+    #if (CC_PLATFORM == CC_PLATFORM_QNX) || defined(CC_SERVER_MODE)
         #define EGL_NO_X11 1
     #endif
 
