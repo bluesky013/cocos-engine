@@ -89,6 +89,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     _constantRegistry = constantRegistry;
 
     if (!gles3wInit()) {
+        CC_LOG_INFO("gles3 init failed...");
         return false;
     }
 

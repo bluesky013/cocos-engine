@@ -140,6 +140,7 @@ PFNGLES3WLOADPROC pfnGLES3wLoadProc() {
 
 bool gles3wInit() {
     if (!gles3wOpen()) {
+        CC_LOG_INFO("gles3 load so failed...");
         return false;
     }
     eglwLoadProcs(gles3wLoad);
