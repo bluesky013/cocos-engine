@@ -106,7 +106,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
 
     if (!success) {
         auto error = eglGetError();
-        CC_LOG_ERROR("eglInitialize() - FAILED. %d", error);g
+        CC_LOG_ERROR("eglInitialize() - FAILED. %d", error);
         return false;
     }
 
