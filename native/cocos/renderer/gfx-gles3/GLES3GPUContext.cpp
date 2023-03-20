@@ -96,7 +96,8 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     EGL_CHECK(eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY));
 
     if (eglDisplay == EGL_NO_DISPLAY) {
-        CC_LOG_ERROR("eglGetDisplay() - FAILED.");
+        auto error = eglGetError();
+        CC_LOG_ERROR("eglGetDisplay() - FAILED. %d", error);
         return false;
     }
 
@@ -104,7 +105,8 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     EGL_CHECK(success = eglInitialize(eglDisplay, &eglMajorVersion, &eglMinorVersion));
 
     if (!success) {
-        CC_LOG_ERROR("eglInitialize() - FAILED.");
+        auto error = eglGetError();
+        CC_LOG_ERROR("eglInitialize() - FAILED. %d", error);
         return false;
     }
 
