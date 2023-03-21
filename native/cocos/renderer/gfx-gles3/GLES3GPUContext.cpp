@@ -142,8 +142,8 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
         EGL_GREEN_SIZE, greenSize,
         EGL_RED_SIZE, redSize,
         EGL_ALPHA_SIZE, alphaSize,
-        EGL_DEPTH_SIZE, depthSize,
-        EGL_STENCIL_SIZE, stencilSize,
+//        EGL_DEPTH_SIZE, depthSize,
+//        EGL_STENCIL_SIZE, stencilSize,
         EGL_SAMPLE_BUFFERS, sampleBufferSize,
         EGL_SAMPLES, sampleSize,
         EGL_NONE};
