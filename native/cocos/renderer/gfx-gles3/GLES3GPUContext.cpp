@@ -144,8 +144,8 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
         EGL_ALPHA_SIZE, alphaSize,
 //        EGL_DEPTH_SIZE, depthSize,
 //        EGL_STENCIL_SIZE, stencilSize,
-        EGL_SAMPLE_BUFFERS, sampleBufferSize,
-        EGL_SAMPLES, sampleSize,
+//        EGL_SAMPLE_BUFFERS, sampleBufferSize,
+//        EGL_SAMPLES, sampleSize,
         EGL_NONE};
 
     int numConfig{0};
