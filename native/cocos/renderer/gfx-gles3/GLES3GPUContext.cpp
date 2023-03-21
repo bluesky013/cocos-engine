@@ -216,7 +216,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
         }
     }
 
-    CC_LOG_INFO("Setup EGLConfig: depth [%d] stencil [%d] sampleBuffer [%d] sampleCount [%d]", depth, stencil, sampleBuffers, sampleCount);
+    CC_LOG_INFO("Setup EGLConfig: depth [%d] stencil [%d] sampleBuffer [%d] sampleCount [%d], config[%p]", depth, stencil, sampleBuffers, sampleCount, eglConfig);
 
     bool hasKHRCreateCtx = checkExtension(CC_TOSTR(EGL_KHR_create_context));
     if (hasKHRCreateCtx) {
