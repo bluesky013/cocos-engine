@@ -136,7 +136,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     EGLint sampleSize{msaaEnabled ? EGL_DONT_CARE : 0};
 
     EGLint defaultAttribs[]{
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
+        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
         EGL_BLUE_SIZE, blueSize,
         EGL_GREEN_SIZE, greenSize,
@@ -151,22 +151,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     int numConfig{0};
     ccstd::vector<EGLConfig> eglConfigs;
 
-//    success = eglGetConfigs(eglDisplay, nullptr, 0, &numConfig);
-//    if (success) {
-//        eglConfigs.resize(numConfig);
-//    } else {
-//        CC_LOG_ERROR("Query GLES3 configuration failed.");
-//        return false;
-//    }
-//
-//    int count = numConfig;
-//    EGL_CHECK(success = eglGetConfigs(eglDisplay, eglConfigs.data(), count, &numConfig));
-//    if (!success || !numConfig) {
-//        CC_LOG_ERROR("eglGetConfigs configuration failed.");
-//        return false;
-//    }
-
-    success = eglChooseConfig(eglDisplay, defaultAttribs, nullptr, 0, &numConfig);
+    success = eglGetConfigs(eglDisplay, nullptr, 0, &numConfig);
     if (success) {
         eglConfigs.resize(numConfig);
     } else {
@@ -175,15 +160,30 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     }
 
     int count = numConfig;
-    EGL_CHECK(success = eglChooseConfig(eglDisplay, defaultAttribs, eglConfigs.data(), count, &numConfig));
+    EGL_CHECK(success = eglGetConfigs(eglDisplay, eglConfigs.data(), count, &numConfig));
     if (!success || !numConfig) {
-        CC_LOG_ERROR("eglChooseConfig configuration failed.");
+        CC_LOG_ERROR("eglGetConfigs configuration failed.");
         return false;
     }
 
-    for (auto &cfg : eglConfigs) {
-        CC_LOG_INFO("egl config %p", cfg);
-    }
+//    success = eglChooseConfig(eglDisplay, defaultAttribs, nullptr, 0, &numConfig);
+//    if (success) {
+//        eglConfigs.resize(numConfig);
+//    } else {
+//        CC_LOG_ERROR("Query GLES3 configuration failed.");
+//        return false;
+//    }
+//
+//    int count = numConfig;
+//    EGL_CHECK(success = eglChooseConfig(eglDisplay, defaultAttribs, eglConfigs.data(), count, &numConfig));
+//    if (!success || !numConfig) {
+//        CC_LOG_ERROR("eglChooseConfig configuration failed.");
+//        return false;
+//    }
+//
+//    for (auto &cfg : eglConfigs) {
+//        CC_LOG_INFO("egl config %p", cfg);
+//    }
 
     EGLint depth{0};
     EGLint stencil{0};
@@ -194,6 +194,8 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
 
     for (int i = 0; i < numConfig; i++) {
         int depthValue{0};
+        int surfaceType{0};
+        int renderType{0};
         eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_RED_SIZE, &params[0]);
         eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_GREEN_SIZE, &params[1]);
         eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_BLUE_SIZE, &params[2]);
@@ -203,8 +205,12 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
         eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_SAMPLE_BUFFERS, &params[6]);
         eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_SAMPLES, &params[7]);
         eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_DEPTH_ENCODING_NV, &depthValue);
+        eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_SURFACE_TYPE, &surfaceType);
+        eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_RENDERABLE_TYPE, &renderType);
 
-        CC_LOG_INFO("EGLConfig [%d]: depth [%d] stencil [%d] rgba [%d][%d][%d][%d]", i, params[4], params[5], params[0], params[1], params[2], params[3]);
+        CC_LOG_INFO("EGLConfig [%d]: depth [%d] stencil [%d] rgba [%d][%d][%d][%d] surface [%d] renderType [%d]", i, params[4], params[5],
+                    params[0], params[1], params[2], params[3],
+                    surfaceType, renderType);
 
         int bNonLinearDepth = (depthValue == EGL_DEPTH_ENCODING_NONLINEAR_NV) ? 1 : 0;
 
