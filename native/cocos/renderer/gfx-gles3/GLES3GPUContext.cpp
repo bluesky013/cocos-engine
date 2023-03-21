@@ -151,22 +151,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     int numConfig{0};
     ccstd::vector<EGLConfig> eglConfigs;
 
-    success = eglGetConfigs(eglDisplay, nullptr, 0, &numConfig);
-    if (success) {
-        eglConfigs.resize(numConfig);
-    } else {
-        CC_LOG_ERROR("Query GLES3 configuration failed.");
-        return false;
-    }
-
-    int count = numConfig;
-    EGL_CHECK(success = eglGetConfigs(eglDisplay, eglConfigs.data(), count, &numConfig));
-    if (!success || !numConfig) {
-        CC_LOG_ERROR("eglGetConfigs configuration failed.");
-        return false;
-    }
-
-//    success = eglChooseConfig(eglDisplay, defaultAttribs, nullptr, 0, &numConfig);
+//    success = eglGetConfigs(eglDisplay, nullptr, 0, &numConfig);
 //    if (success) {
 //        eglConfigs.resize(numConfig);
 //    } else {
@@ -175,15 +160,30 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
 //    }
 //
 //    int count = numConfig;
-//    EGL_CHECK(success = eglChooseConfig(eglDisplay, defaultAttribs, eglConfigs.data(), count, &numConfig));
+//    EGL_CHECK(success = eglGetConfigs(eglDisplay, eglConfigs.data(), count, &numConfig));
 //    if (!success || !numConfig) {
-//        CC_LOG_ERROR("eglChooseConfig configuration failed.");
+//        CC_LOG_ERROR("eglGetConfigs configuration failed.");
 //        return false;
 //    }
-//
-//    for (auto &cfg : eglConfigs) {
-//        CC_LOG_INFO("egl config %p", cfg);
-//    }
+
+    success = eglChooseConfig(eglDisplay, defaultAttribs, nullptr, 0, &numConfig);
+    if (success) {
+        eglConfigs.resize(numConfig);
+    } else {
+        CC_LOG_ERROR("Query GLES3 configuration failed.");
+        return false;
+    }
+
+    int count = numConfig;
+    EGL_CHECK(success = eglChooseConfig(eglDisplay, defaultAttribs, eglConfigs.data(), count, &numConfig));
+    if (!success || !numConfig) {
+        CC_LOG_ERROR("eglChooseConfig configuration failed.");
+        return false;
+    }
+
+    for (auto &cfg : eglConfigs) {
+        CC_LOG_INFO("egl config %p", cfg);
+    }
 
     EGLint depth{0};
     EGLint stencil{0};
