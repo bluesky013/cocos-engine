@@ -136,7 +136,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     EGLint sampleSize{msaaEnabled ? EGL_DONT_CARE : 0};
 
     EGLint defaultAttribs[]{
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
+        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
         EGL_BLUE_SIZE, blueSize,
         EGL_GREEN_SIZE, greenSize,
