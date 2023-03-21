@@ -93,7 +93,12 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
         return false;
     }
 
-    EGL_CHECK(eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY));
+    EGL_CHECK(_extensions = StringUtil::split(eglQueryString(eglDisplay, EGL_EXTENSIONS), " "));
+    if (checkExtension("EGL_MESA_platform_surfaceless")) {
+        EGL_CHECK(eglDisplay = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, nullptr));
+    } else {
+        EGL_CHECK(eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY));
+    }
 
     if (eglDisplay == EGL_NO_DISPLAY) {
         auto error = eglGetError();
@@ -204,8 +209,6 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     }
 
     CC_LOG_INFO("Setup EGLConfig: depth [%d] stencil [%d] sampleBuffer [%d] sampleCount [%d]", depth, stencil, sampleBuffers, sampleCount);
-
-    EGL_CHECK(_extensions = StringUtil::split(eglQueryString(eglDisplay, EGL_EXTENSIONS), " "));
 
     bool hasKHRCreateCtx = checkExtension(CC_TOSTR(EGL_KHR_create_context));
     if (hasKHRCreateCtx) {
