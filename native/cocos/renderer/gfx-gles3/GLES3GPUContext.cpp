@@ -94,6 +94,11 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     }
 
     EGL_CHECK(_extensions = StringUtil::split(eglQueryString(eglDisplay, EGL_EXTENSIONS), " "));
+    CC_LOG_INFO("supported extensions:...")
+    for (auto &ext : _extensions) {
+        CC_LOG_INFO("%s", ext.c_str());
+    }
+
     if (checkExtension("EGL_MESA_platform_surfaceless")) {
         EGL_CHECK(eglDisplay = eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, nullptr));
     } else {
