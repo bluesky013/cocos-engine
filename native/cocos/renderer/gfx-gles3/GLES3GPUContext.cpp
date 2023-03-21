@@ -136,7 +136,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     EGLint sampleSize{msaaEnabled ? EGL_DONT_CARE : 0};
 
     EGLint defaultAttribs[]{
-        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
         EGL_BLUE_SIZE, blueSize,
         EGL_GREEN_SIZE, greenSize,
@@ -151,22 +151,7 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
     int numConfig{0};
     ccstd::vector<EGLConfig> eglConfigs;
 
-    success = eglGetConfigs(eglDisplay, nullptr, 0, &numConfig);
-    if (success) {
-        eglConfigs.resize(numConfig);
-    } else {
-        CC_LOG_ERROR("Query GLES3 configuration failed.");
-        return false;
-    }
-
-    int count = numConfig;
-    EGL_CHECK(success = eglGetConfigs(eglDisplay, eglConfigs.data(), count, &numConfig));
-    if (!success || !numConfig) {
-        CC_LOG_ERROR("eglGetConfigs configuration failed.");
-        return false;
-    }
-
-//    success = eglChooseConfig(eglDisplay, defaultAttribs, nullptr, 0, &numConfig);
+//    success = eglGetConfigs(eglDisplay, nullptr, 0, &numConfig);
 //    if (success) {
 //        eglConfigs.resize(numConfig);
 //    } else {
@@ -175,11 +160,26 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
 //    }
 //
 //    int count = numConfig;
-//    EGL_CHECK(success = eglChooseConfig(eglDisplay, defaultAttribs, eglConfigs.data(), count, &numConfig));
+//    EGL_CHECK(success = eglGetConfigs(eglDisplay, eglConfigs.data(), count, &numConfig));
 //    if (!success || !numConfig) {
-//        CC_LOG_ERROR("eglChooseConfig configuration failed.");
+//        CC_LOG_ERROR("eglGetConfigs configuration failed.");
 //        return false;
 //    }
+
+    success = eglChooseConfig(eglDisplay, defaultAttribs, nullptr, 0, &numConfig);
+    if (success) {
+        eglConfigs.resize(numConfig);
+    } else {
+        CC_LOG_ERROR("Query GLES3 configuration failed.");
+        return false;
+    }
+
+    int count = numConfig;
+    EGL_CHECK(success = eglChooseConfig(eglDisplay, defaultAttribs, eglConfigs.data(), count, &numConfig));
+    if (!success || !numConfig) {
+        CC_LOG_ERROR("eglChooseConfig configuration failed.");
+        return false;
+    }
 
     for (auto &cfg : eglConfigs) {
         CC_LOG_INFO("egl config %p", cfg);
