@@ -185,6 +185,8 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
         eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_SAMPLES, &params[7]);
         eglGetConfigAttrib(eglDisplay, eglConfigs[i], EGL_DEPTH_ENCODING_NV, &depthValue);
 
+        CC_LOG_INFO("EGLConfig [%d]: depth [%d] stencil [%d] rgba [%d][%d][%d][%d]", i, params[4], params[5], params[0], params[1], params[2], params[3]);
+
         int bNonLinearDepth = (depthValue == EGL_DEPTH_ENCODING_NONLINEAR_NV) ? 1 : 0;
 
         /*------------------------------------------ANGLE's priority-----------------------------------------------*/
