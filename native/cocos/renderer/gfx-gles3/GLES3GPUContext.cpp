@@ -166,6 +166,10 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
         return false;
     }
 
+    for (auto &cfg : eglConfigs) {
+        CC_LOG_INFO("egl config %p", cfg);
+    }
+
     EGLint depth{0};
     EGLint stencil{0};
     EGLint sampleBuffers{0};
