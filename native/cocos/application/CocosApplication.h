@@ -138,6 +138,7 @@ public:
     virtual void handleException(const char *location, const char *message, const char *stack);
     virtual void setXXTeaKey(const ccstd::string &key);
 
+    bool saveImage = true;
 private:
     void unregisterAllEngineEvents();
 

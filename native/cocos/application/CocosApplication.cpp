@@ -108,7 +108,7 @@ int CocosApplication::init() {
 int32_t CocosApplication::run(int argc, const char **argv) {
     CC_UNUSED_PARAM(argc);
     CC_UNUSED_PARAM(argv);
-    for (int i = 0; i < argc; ++i) {
+    for (int i = 0; i < argc; i+=2) {
         if (std::string(argv[i]) == std::string("--fps")) {
             int intKey = atoi(std::string(argv[i + 1]).c_str());
             CC_LOG_INFO("set fps %d", intKey);
@@ -117,6 +117,11 @@ int32_t CocosApplication::run(int argc, const char **argv) {
                 BasePlatform *platform = BasePlatform::getPlatform();
                 platform->setFps(intKey);
             }
+        }
+        if (std::string(argv[i]) == std::string("--save")) {
+            int intKey = atoi(std::string(argv[i + 1]).c_str());
+            CC_LOG_INFO("save image %d", intKey);
+            saveImage = (intKey == 0);
         }
     }
 
