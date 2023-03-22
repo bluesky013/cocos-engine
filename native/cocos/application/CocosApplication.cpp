@@ -108,6 +108,18 @@ int CocosApplication::init() {
 int32_t CocosApplication::run(int argc, const char **argv) {
     CC_UNUSED_PARAM(argc);
     CC_UNUSED_PARAM(argv);
+    for (int i = 0; i < argc; ++i) {
+        if (std::string(argv[i]) == std::string("--fps")) {
+            int intKey = atoi(std::string(argv[i + 1]).c_str());
+            CC_LOG_INFO("set fps %d", intKey);
+
+            if (intKey >= 1 && intKey <= 60) {
+                BasePlatform *platform = BasePlatform::getPlatform();
+                platform->setFps(intKey);
+            }
+        }
+    }
+
     return _engine->run();
 }
 
