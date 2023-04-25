@@ -31,9 +31,6 @@
 #include "core/memop/CachedArray.h"
 #include "gfx-base/GFXDeviceObject.h"
 
-#define TBB_USE_EXCEPTIONS 0 // no-rtti for now
-#include "tbb/concurrent_unordered_map.h"
-
 namespace cc {
 namespace gfx {
 
@@ -461,7 +458,7 @@ private:
     friend class CCVKDevice;
 
     // cannot use thread_local here because we need explicit control over their destruction
-    using CommandBufferPools = tbb::concurrent_unordered_map<size_t, CCVKGPUCommandBufferPool *, std::hash<size_t>>;
+    using CommandBufferPools = std::unordered_map<size_t, CCVKGPUCommandBufferPool *, std::hash<size_t>>;
     CommandBufferPools _commandBufferPools;
 
     ccstd::unordered_map<uint32_t, std::unique_ptr<CCVKGPUDescriptorSetPool>> _descriptorSetPools;
