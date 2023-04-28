@@ -29,8 +29,49 @@
 #include "platform/interfaces/modules/ISystemWindow.h"
 #include "platform/interfaces/modules/ISystemWindowManager.h"
 
+#include "gfx-base/sdk/Profiler.h"
+
 namespace cc {
 namespace gfx {
+
+struct Perf {
+    Perf();
+    ~Perf();
+
+    std::unique_ptr<perfetto::TracingSession> tracing;
+};
+
+Perf::Perf()
+{
+    perfetto::TracingInitArgs args;
+    args.backends = perfetto::kSystemBackend;
+
+    perfetto::Tracing::Initialize(args);
+    perfetto::TrackEvent::Register();
+
+//    perfetto::TraceConfig cfg;
+//    cfg.add_buffers()->set_size_kb(1024);
+//    auto* ds_cfg = cfg.add_data_sources()->mutable_config();
+//    ds_cfg->set_name("track_event");
+//
+//    tracing = perfetto::Tracing::NewTrace();
+//    tracing->Setup(cfg);
+//    tracing->StartBlocking();
+//
+//    perfetto::ProcessTrack process_track = perfetto::ProcessTrack::Current();
+//    perfetto::protos::gen::TrackDescriptor desc = process_track.Serialize();
+//    desc.mutable_process()->set_process_name("Cocos");
+//    perfetto::TrackEvent::SetTrackDescriptor(process_track, desc);
+}
+
+Perf::~Perf()
+{
+    perfetto::TrackEvent::Flush();
+
+//    tracing->StopBlocking();
+//    tracing = nullptr;
+}
+std::unique_ptr<Perf> perf = nullptr;
 
 Device *Device::instance = nullptr;
 bool Device::isSupportDetachDeviceThread = true;
@@ -47,12 +88,16 @@ Device::Device() {
     addRef();
     _features.fill(false);
     _formatFeatures.fill(FormatFeature::NONE);
+
+    perf = std::make_unique<Perf>();
 }
 
 Device::~Device() {
     Device::instance = nullptr;
     CC_SAFE_RELEASE(_cmdBuff);
     CC_SAFE_RELEASE(_queue);
+
+    perf = nullptr;
 }
 
 bool Device::initialize(const DeviceInfo &info) {

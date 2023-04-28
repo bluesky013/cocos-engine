@@ -29,6 +29,7 @@
 #include "base/threading/MessageQueue.h"
 #include "base/threading/ThreadSafeLinearAllocator.h"
 #include "platform/interfaces/modules/IXRInterface.h"
+#include "gfx-base/sdk/Profiler.h"
 
 #include "BufferAgent.h"
 #include "CommandBufferAgent.h"
@@ -163,6 +164,7 @@ void DeviceAgent::present() {
                 frameBoundarySemaphore->signal();
             });
 
+        TRACE_EVENT("engine", "frame sync");
         MessageQueue::freeChunksInFreeQueue(_mainMessageQueue);
         _mainMessageQueue->finishWriting();
         _currentIndex = (_currentIndex + 1) % MAX_FRAME_INDEX;

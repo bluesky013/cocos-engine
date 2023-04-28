@@ -39,6 +39,7 @@
 #include "cocos/renderer/gfx-base/GFXDef-common.h"
 #include "cocos/renderer/gfx-base/GFXDescriptorSetLayout.h"
 #include "cocos/renderer/gfx-base/GFXDevice.h"
+#include "cocos/renderer/gfx-base/sdk/Profiler.h"
 #include "cocos/renderer/pipeline/Define.h"
 #include "cocos/renderer/pipeline/InstancedBuffer.h"
 #include "cocos/renderer/pipeline/PipelineStateManager.h"
@@ -2072,6 +2073,7 @@ void collectStatistics(const NativePipeline& ppl, PipelineStatistics& stats) {
 } // namespace
 
 void NativePipeline::executeRenderGraph(const RenderGraph& rg) {
+    TRACE_EVENT("engine", "rendergraph execution");
     auto& ppl = *this;
     auto* scratch = &ppl.unsyncPool;
 

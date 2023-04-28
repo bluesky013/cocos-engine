@@ -48,6 +48,7 @@
 #include "scene/Camera.h"
 #include "scene/DirectionalLight.h"
 #include "scene/SpotLight.h"
+#include "gfx-base/sdk/Profiler.h"
 
 namespace cc {
 
@@ -462,6 +463,7 @@ void Root::frameMove(float deltaTime, int32_t totalFrames) { // NOLINT
     if (_xr) {
         doXRFrameMove(totalFrames);
     } else {
+        TRACE_EVENT("engine", "frame move");
         frameMoveBegin();
         frameMoveProcess(true, totalFrames);
         frameMoveEnd();

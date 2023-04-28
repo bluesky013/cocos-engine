@@ -975,6 +975,15 @@ if(WINDOWS OR MACOSX OR LINUX OR QNX)
     )
 endif()
 
+add_library(perfetto STATIC
+        ${CMAKE_CURRENT_LIST_DIR}/cocos/renderer/gfx-base/sdk/perfetto.cc
+        ${CMAKE_CURRENT_LIST_DIR}/cocos/renderer/gfx-base/sdk/perfetto.h
+        )
+if (MSVC)
+    target_compile_options(perfetto PUBLIC "/bigobj" "/permissive-" "/Zc:__cplusplus")
+    target_compile_definitions(perfetto PRIVATE -DWIN32_LEAN_AND_MEAN -DNOMINMAX)
+endif()
+list(APPEND CC_EXTERNAL_LIBS perfetto)
 
 ##### platform
 cocos_source_files(
@@ -1121,6 +1130,8 @@ cocos_source_files(
                  cocos/renderer/gfx-base/GFXDef-common.h
                  cocos/renderer/gfx-base/GFXDevice.cpp
                  cocos/renderer/gfx-base/GFXDevice.h
+                 cocos/renderer/gfx-base/sdk/Profiler.cpp
+                 cocos/renderer/gfx-base/sdk/Profiler.h
                  cocos/renderer/gfx-base/GFXFramebuffer.cpp
                  cocos/renderer/gfx-base/GFXFramebuffer.h
                  cocos/renderer/gfx-base/GFXInputAssembler.cpp

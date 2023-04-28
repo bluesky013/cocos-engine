@@ -113,7 +113,7 @@ private:
     bool _resune{false};
     SchedulerPtr _scheduler{nullptr};
     int64_t _prefererredNanosecondsPerFrame{NANOSECONDS_60FPS};
-    uint _totalFrames{0};
+    std::atomic_uint32_t _totalFrames{0};
     cc::Vec2 _viewLogicalSize{0, 0};
     bool _needRestart{false};
     bool _inited{false};

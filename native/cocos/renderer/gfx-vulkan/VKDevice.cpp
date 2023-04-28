@@ -66,6 +66,8 @@ CC_DISABLE_WARNINGS()
 #include "thsvs_simpler_vulkan_synchronization.h"
 CC_ENABLE_WARNINGS()
 
+#include "gfx-base/sdk/Profiler.h"
+
 namespace cc {
 namespace gfx {
 
@@ -610,6 +612,9 @@ VkImageMemoryBarrier presentBarrier{
 } // namespace
 
 void CCVKDevice::acquire(Swapchain *const *swapchains, uint32_t count) {
+    auto frame = CC_CURRENT_ENGINE()->getTotalFrames();
+    TRACE_EVENT_BEGIN("rendering", "DrawGame", "frame_counter", frame);
+
     if (_onAcquire) _onAcquire->execute();
 
     auto *queue = static_cast<CCVKQueue *>(_queue);
@@ -724,6 +729,8 @@ void CCVKDevice::present() {
     if (_xr) {
         _xr->postGFXDevicePresent(_api);
     }
+
+    TRACE_EVENT_END("rendering");
 }
 
 void CCVKDevice::frameSync() {

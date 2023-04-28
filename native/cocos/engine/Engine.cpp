@@ -39,6 +39,8 @@
 #include "renderer/pipeline/RenderPipeline.h"
 #include "renderer/pipeline/custom/RenderingModule.h"
 
+#include "gfx-base/sdk/Profiler.h"
+
 #if CC_USE_AUDIO
     #include "cocos/audio/include/AudioEngine.h"
 #endif
@@ -241,7 +243,7 @@ void Engine::close() { // NOLINT
 }
 
 uint Engine::getTotalFrames() const {
-    return _totalFrames;
+    return _totalFrames.load();
 }
 
 void Engine::setPreferredFramesPerSecond(int fps) {
@@ -254,6 +256,8 @@ void Engine::setPreferredFramesPerSecond(int fps) {
 }
 
 void Engine::tick() {
+    _totalFrames.fetch_add(1);
+    TRACE_EVENT("engine", "tick frame", "frame_counter", getTotalFrames());
     CC_PROFILER_BEGIN_FRAME;
     {
         CC_PROFILE(EngineTick);
@@ -270,8 +274,7 @@ void Engine::tick() {
         static float dt = 0.F;
         static double dtNS = NANOSECONDS_60FPS;
 
-        ++_totalFrames;
-
+        TRACE_EVENT_BEGIN("engine", "sleep");
         // iOS/macOS use its own fps limitation algorithm.
         // Windows for Editor should not sleep,because Editor call tick function synchronously
 #if (CC_PLATFORM == CC_PLATFORM_ANDROID || (CC_PLATFORM == CC_PLATFORM_WINDOWS && !CC_EDITOR) || CC_PLATFORM == CC_PLATFORM_OHOS) || (defined(CC_SERVER_MODE) && (CC_PLATFORM == CC_PLATFORM_MAC_OSX))
@@ -282,8 +285,8 @@ void Engine::tick() {
             dtNS = static_cast<double>(_prefererredNanosecondsPerFrame);
         }
 #endif
-
         prevTime = std::chrono::steady_clock::now();
+        TRACE_EVENT_END("engine");
 
         _scheduler->update(dt);
 
@@ -297,7 +300,6 @@ void Engine::tick() {
         dtNS = dtNS * 0.1 + 0.9 * static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - prevTime).count());
         dt = static_cast<float>(dtNS) / NANOSECONDS_PER_SECOND;
     }
-
     CC_PROFILER_END_FRAME;
 }
 
