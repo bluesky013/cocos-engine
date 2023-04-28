@@ -25,7 +25,7 @@
 /* eslint-disable max-len */
 import { systemInfo } from 'pal/system-info';
 import { DEBUG } from 'internal:constants';
-import { Color, Buffer, DescriptorSetLayout, Device, Feature, Format, FormatFeatureBit, Sampler, Swapchain, Texture, ClearFlagBit, DescriptorSet, deviceManager, Viewport, API, CommandBuffer, Type, SamplerInfo, Filter, Address, DescriptorSetInfo, LoadOp, StoreOp } from '../../gfx';
+import { Color, Buffer, DescriptorSetLayout, Device, Feature, Format, FormatFeatureBit, Sampler, Swapchain, Texture, ClearFlagBit, DescriptorSet, deviceManager, Viewport, API, CommandBuffer, Type, SamplerInfo, Filter, Address, DescriptorSetInfo, LoadOp, StoreOp, ShaderStageFlagBit, BufferInfo, TextureInfo } from '../../gfx';
 import { Mat4, Quat, toRadian, Vec2, Vec3, Vec4, assert, macro, cclegacy } from '../../core';
 import { AccessType, AttachmentType, ComputeView, CopyPair, LightInfo, LightingMode, MovePair, QueueHint, RasterView, ResourceDimension, ResourceFlags, ResourceResidency, SceneFlags, UpdateFrequency } from './types';
 import { Blit, ClearView, ComputePass, CopyPass, Dispatch, ManagedBuffer, ManagedResource, MovePass, RasterPass, RasterSubpass, RenderData, RenderGraph, RenderGraphComponent, RenderGraphValue, RenderQueue, RenderSwapchain, ResourceDesc, ResourceGraph, ResourceGraphValue, ResourceStates, ResourceTraits, SceneData, Subpass } from './render-graph';
@@ -853,10 +853,7 @@ export class WebRasterQueueBuilder extends WebSetter implements RasterQueueBuild
         );
     }
     setViewport (viewport: Viewport) {
-        this._renderGraph.addVertex<RenderGraphValue.Viewport>(
-            RenderGraphValue.Viewport, viewport,
-            'Viewport', '', new RenderData(), false, this._vertID,
-        );
+        this._queue.viewport = new Viewport().copy(viewport);
     }
     addCustomCommand (customBehavior: string): void {
         throw new Error('Method not implemented.');
@@ -881,6 +878,9 @@ export class WebRasterSubpassBuilder extends WebSetter implements RasterSubpassB
             RenderGraphComponent.Layout, this._vertID,
         );
         this._layoutID = layoutGraph.locateChild(layoutGraph.nullVertex(), layoutName);
+    }
+    setCustomShaderStages (name: string, stageFlags: ShaderStageFlagBit): void {
+        throw new Error('Method not implemented.');
     }
     setArrayBuffer (name: string, arrayBuffer: ArrayBuffer): void {
         throw new Error('Method not implemented.');
@@ -956,6 +956,9 @@ export class WebRasterPassBuilder extends WebSetter implements RasterPassBuilder
             RenderGraphComponent.Layout, this._vertID,
         );
         this._layoutID = layoutGraph.locateChild(layoutGraph.nullVertex(), layoutName);
+    }
+    setCustomShaderStages (name: string, stageFlags: ShaderStageFlagBit): void {
+        throw new Error('Method not implemented.');
     }
     addRasterView (name: string, view: RasterView) {
         this._pass.rasterViews.set(name, view);
@@ -1162,6 +1165,9 @@ export class WebComputePassBuilder extends WebSetter implements ComputePassBuild
         );
         this._layoutID = layoutGraph.locateChild(layoutGraph.nullVertex(), layoutName);
     }
+    setCustomShaderStages (name: string, stageFlags: ShaderStageFlagBit): void {
+        throw new Error('Method not implemented.');
+    }
     setArrayBuffer (name: string, arrayBuffer: ArrayBuffer): void {
         throw new Error('Method not implemented.');
     }
@@ -1265,6 +1271,12 @@ function isManaged (residency: ResourceResidency): boolean {
 export class WebPipeline implements Pipeline {
     constructor (layoutGraph: LayoutGraphData) {
         this._layoutGraph = layoutGraph;
+    }
+    addCustomBuffer (name: string, info: BufferInfo, type: string): number {
+        throw new Error('Method not implemented.');
+    }
+    addCustomTexture (name: string, info: TextureInfo, type: string): number {
+        throw new Error('Method not implemented.');
     }
     addRenderTexture (name: string, format: Format, width: number, height: number, renderWindow: RenderWindow): number {
         return this.addRenderWindow(name, format, width, height, renderWindow);
@@ -1748,6 +1760,10 @@ export class WebPipeline implements Pipeline {
         return this._layoutGraph;
     }
 
+    get resourceUses () {
+        return this._resourceUses;
+    }
+
     protected _updateRasterPassConstants (setter: WebSetter, width: number, height: number, layoutName = 'default') {
         const director = cclegacy.director;
         const root = director.root;
@@ -1806,6 +1822,7 @@ export class WebPipeline implements Pipeline {
     private _profiler: Model | null = null;
     private _pipelineUBO: PipelineUBO = new PipelineUBO();
     private _cameras: Camera[] = [];
+    private _resourceUses: string[] = [];
 
     private _layoutGraph: LayoutGraphData;
     private readonly _resourceGraph: ResourceGraph = new ResourceGraph();

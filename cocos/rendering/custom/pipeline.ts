@@ -31,7 +31,7 @@
 import { Material } from '../../asset/assets';
 import { Camera } from '../../render-scene/scene/camera';
 import { GeometryRenderer } from '../geometry-renderer';
-import { Buffer, ClearFlagBit, Color, CommandBuffer, DescriptorSet, DescriptorSetLayout, Device, DrawInfo, Format, InputAssembler, LoadOp, PipelineState, Rect, Sampler, StoreOp, Swapchain, Texture, Viewport } from '../../gfx';
+import { Buffer, BufferInfo, ClearFlagBit, Color, CommandBuffer, DescriptorSet, DescriptorSetLayout, Device, DrawInfo, Format, InputAssembler, LoadOp, PipelineState, Rect, Sampler, ShaderStageFlagBit, StoreOp, Swapchain, Texture, TextureInfo, Viewport } from '../../gfx';
 import { GlobalDSManager } from '../global-descriptor-set-manager';
 import { Mat4, Quat, Vec2, Vec4 } from '../../core/math';
 import { MacroRecord } from '../../render-scene/core/pass-utils';
@@ -168,6 +168,10 @@ export interface RasterSubpassBuilder extends Setter {
     addQueue (hint: QueueHint/*, ''*/): RasterQueueBuilder;
     addQueue (/*QueueHint.NONE, ''*/): RasterQueueBuilder;
     showStatistics: boolean;
+    /**
+     * @beta method's name might change
+     */
+    setCustomShaderStages (name: string, stageFlags: ShaderStageFlagBit): void;
 }
 
 export interface ComputeQueueBuilder extends Setter {
@@ -199,6 +203,10 @@ export interface ComputeSubpassBuilder extends Setter {
     addComputeView (name: string, view: ComputeView): void;
     addQueue (layoutName: string): ComputeQueueBuilder;
     addQueue (/*''*/): ComputeQueueBuilder;
+    /**
+     * @beta method's name might change
+     */
+    setCustomShaderStages (name: string, stageFlags: ShaderStageFlagBit): void;
 }
 
 export interface RasterPassBuilder extends Setter {
@@ -272,6 +280,10 @@ export interface RasterPassBuilder extends Setter {
     setViewport (viewport: Viewport): void;
     setVersion (name: string, version: number): void;
     showStatistics: boolean;
+    /**
+     * @beta method's name might change
+     */
+    setCustomShaderStages (name: string, stageFlags: ShaderStageFlagBit): void;
 }
 
 export interface ComputePassBuilder extends Setter {
@@ -293,6 +305,10 @@ export interface ComputePassBuilder extends Setter {
     addComputeView (name: string, view: ComputeView): void;
     addQueue (layoutName: string): ComputeQueueBuilder;
     addQueue (/*''*/): ComputeQueueBuilder;
+    /**
+     * @beta method's name might change
+     */
+    setCustomShaderStages (name: string, stageFlags: ShaderStageFlagBit): void;
 }
 
 export interface MovePassBuilder extends RenderNode {
@@ -346,6 +362,14 @@ export interface Pipeline extends PipelineRuntime {
     addStorageTexture (name: string, format: Format, width: number, height: number/*, ResourceResidency.MANAGED*/): number;
     addShadingRateTexture (name: string, width: number, height: number, residency: ResourceResidency): number;
     addShadingRateTexture (name: string, width: number, height: number/*, ResourceResidency.MANAGED*/): number;
+    /**
+     * @beta method's name might change
+     */
+    addCustomBuffer (name: string, info: BufferInfo, type: string): number;
+    /**
+     * @beta method's name might change
+     */
+    addCustomTexture (name: string, info: TextureInfo, type: string): number;
     updateStorageBuffer (name: string, size: number, format: Format): void;
     updateStorageBuffer (name: string, size: number/*, Format.UNKNOWN*/): void;
     updateRenderTarget (name: string, width: number, height: number, format: Format): void;
