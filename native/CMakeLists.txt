@@ -3278,3 +3278,6 @@ else()
         source_group(TREE ${CWD} PREFIX "Source Files" FILES ${COCOS_SOURCE_LIST})
     endif()
 endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Os")
+message("12345 CMAKE_CXX_FLAGS: " ${CMAKE_CXX_FLAGS})

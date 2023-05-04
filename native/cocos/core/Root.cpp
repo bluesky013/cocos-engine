@@ -372,9 +372,9 @@ void Root::resetCumulativeTime() {
 }
 
 void Root::frameSync() {
-    if (_device) {
-        _device->frameSync();
-    }
+//    if (_device) {
+//        _device->frameSync();
+//    }
 }
 
 void Root::frameMoveBegin() {

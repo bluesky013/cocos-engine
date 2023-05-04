@@ -368,8 +368,8 @@ void DeviceValidator::enableAutoBarrier(bool en) {
     _actor->enableAutoBarrier(en);
 }
 
-void DeviceValidator::frameSync() {
-    _actor->frameSync();
+void DeviceValidator::frameSync(uint32_t frameIndex) {
+    _actor->frameSync(frameIndex);
 }
 
 } // namespace gfx

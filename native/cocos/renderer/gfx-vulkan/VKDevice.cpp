@@ -612,9 +612,6 @@ VkImageMemoryBarrier presentBarrier{
 } // namespace
 
 void CCVKDevice::acquire(Swapchain *const *swapchains, uint32_t count) {
-    auto frame = CC_CURRENT_ENGINE()->getTotalFrames();
-    TRACE_EVENT_BEGIN("rendering", "DrawGame", "frame_counter", frame);
-
     if (_onAcquire) _onAcquire->execute();
 
     auto *queue = static_cast<CCVKQueue *>(_queue);
@@ -733,7 +730,8 @@ void CCVKDevice::present() {
     TRACE_EVENT_END("rendering");
 }
 
-void CCVKDevice::frameSync() {
+void CCVKDevice::frameSync(uint32_t frameIndex) {
+    TRACE_EVENT_BEGIN("rendering", "DrawGame", "frame_counter", frameIndex);
 }
 
 CCVKGPUFencePool *CCVKDevice::gpuFencePool() { return _gpuFencePools[_gpuDevice->curBackBufferIndex].get(); }

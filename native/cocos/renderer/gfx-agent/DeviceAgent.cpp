@@ -448,12 +448,13 @@ void DeviceAgent::presentWait() {
     _frameBoundarySemaphore.wait();
 }
 
-void DeviceAgent::frameSync() {
-    ENQUEUE_MESSAGE_1(
+void DeviceAgent::frameSync(uint32_t frameIndex) {
+    ENQUEUE_MESSAGE_2(
         _mainMessageQueue, FrameSync,
+        index, frameIndex,
         actor, _actor,
         {
-            actor->frameSync();
+            actor->frameSync(index);
         });
 }
 

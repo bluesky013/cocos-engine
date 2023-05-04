@@ -64,7 +64,7 @@ public:
     using Device::createTexture;
     using Device::createTextureBarrier;
 
-    void frameSync() override;
+    void frameSync(uint32_t frameIndex) override;
     void acquire(Swapchain *const *swapchains, uint32_t count) override;
     void present() override;
 
