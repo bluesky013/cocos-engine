@@ -133,6 +133,8 @@ void Texture::updateTextureInfo(const SwapchainTextureInfo &info, Texture *out) 
     out->_info.usage = GFX_FORMAT_INFOS[toNumber(info.format)].hasDepth
                            ? TextureUsageBit::DEPTH_STENCIL_ATTACHMENT
                            : TextureUsageBit::COLOR_ATTACHMENT;
+    out->_info.usage |= TextureUsageBit::SAMPLED;
+    out->_info.usage |= TextureUsageBit::INPUT_ATTACHMENT;
     out->_swapchain = info.swapchain;
     out->_size = formatSize(info.format, info.width, info.height, 1);
     out->_hash = computeHash(out);
