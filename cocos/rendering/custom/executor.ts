@@ -47,7 +47,7 @@ import { IRenderPass, isEnableEffect, SetIndex, UBODeferredLight, UBOForwardLigh
 import { PipelineSceneData } from '../pipeline-scene-data';
 import { PipelineInputAssemblerData } from '../render-pipeline';
 import { DescriptorSetData, LayoutGraphData, PipelineLayoutData, RenderPhaseData, RenderStageData } from './layout-graph';
-import { Pipeline, SceneVisitor } from './pipeline';
+import { BasicPipeline, SceneVisitor } from './pipeline';
 import { Blit, ClearView, ComputePass, ComputeSubpass, CopyPass, Dispatch, ManagedBuffer, ManagedResource, ManagedTexture, MovePass,
     RasterPass, RasterSubpass, RaytracePass, RenderData, RenderGraph, RenderGraphVisitor, RenderQueue, RenderSwapchain, ResourceDesc,
     ResourceGraph, ResourceGraphVisitor, ResourceTraits, SceneData } from './render-graph';
@@ -462,7 +462,8 @@ class SubmitInfo {
     public opaqueList: RenderInfo[] = [];
     public transparentList: RenderInfo[] = [];
     public planarQueue: PlanarShadowQueue | null = null;
-    public shadowMap: RenderShadowMapBatchedQueue | null = null;
+    // <scene id, shadow queue>
+    public shadowMap: Map<number, RenderShadowMapBatchedQueue> = new Map<number, RenderShadowMapBatchedQueue>();
     public additiveLight: RenderAdditiveLightQueue | null = null;
     public reflectionProbe: RenderReflectionProbeQueue | null = null;
     reset () {
@@ -472,7 +473,7 @@ class SubmitInfo {
         this.opaqueList.length = 0;
         this.transparentList.length = 0;
         this.planarQueue = null;
-        this.shadowMap = null;
+        this.shadowMap.clear();
         this.additiveLight = null;
         this.reflectionProbe = null;
     }
@@ -571,7 +572,10 @@ class RasterPassInfo {
                 computeView.name = currComputeView.name;
                 computeView.accessType = currComputeView.accessType;
                 computeView.clearFlags = currComputeView.clearFlags;
-                computeView.clearColor.copy(currComputeView.clearColor);
+                computeView.clearValue.x = currComputeView.clearValue.x;
+                computeView.clearValue.y = currComputeView.clearValue.y;
+                computeView.clearValue.z = currComputeView.clearValue.z;
+                computeView.clearValue.w = currComputeView.clearValue.w;
                 computeView.clearValueType = currComputeView.clearValueType;
                 computeViews[idx] = computeView;
                 idx++;
@@ -1010,12 +1014,15 @@ class DevicePreSceneTask extends WebSceneTask {
 
         // shadowmap
         if (isShadowMap(this.graphScene)) {
-            assert(this.graphScene.scene!.light.light);
-            if (!this._submitInfo.shadowMap) {
-                this._submitInfo.shadowMap = context.shadowMapBatched;
+            const scene = this.graphScene.scene!;
+            assert(scene.light.light);
+            let shadowQueue = this._submitInfo.shadowMap.get(this.graphScene.sceneID);
+            if (!shadowQueue) {
+                shadowQueue = new RenderShadowMapBatchedQueue(context.pipeline);
+                this._submitInfo.shadowMap.set(this.graphScene.sceneID, shadowQueue);
             }
-            this.sceneData.shadowFrameBufferMap.set(this.graphScene.scene!.light.light, devicePass.framebuffer);
-            this._submitInfo.shadowMap.gatherLightPasses(this.camera, this.graphScene.scene!.light.light, this._cmdBuff, this.graphScene.scene!.light.level);
+            this.sceneData.shadowFrameBufferMap.set(scene.light.light, devicePass.framebuffer);
+            shadowQueue.gatherLightPasses(this.camera, scene.light.light, this._cmdBuff, scene.light.level);
             return;
         }
         // reflection probe
@@ -1166,49 +1173,7 @@ class DevicePreSceneTask extends WebSceneTask {
         if (!isEnableEffect()) context.pipeline.descriptorSet.update();
     }
 
-    protected _setMainLightShadowTex (data: RenderData) {
-        const graphScene = this.graphScene;
-        if (graphScene.scene && graphScene.scene.camera) {
-            const mainLight = graphScene.scene.camera.scene!.mainLight;
-            const shadowFrameBufferMap = this.sceneData.shadowFrameBufferMap;
-            if (mainLight && shadowFrameBufferMap.has(mainLight)) {
-                const shadowAttrID = context.layoutGraph.attributeIndex.get('cc_shadowMap');
-                const defaultTex = builtinResMgr.get<Texture2D>('default-texture').getGFXTexture()!;
-                for (const [key, value] of data.textures) {
-                    if (key === shadowAttrID) {
-                        const tex = data.textures.get(shadowAttrID);
-                        if (tex === defaultTex) {
-                            data.textures.set(key, shadowFrameBufferMap.get(mainLight)!.colorTextures[0]!);
-                        }
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    protected _updateUbo () {
-        if (this._currentQueue.isUpdateUBO) return;
-        const devicePass = this._currentQueue.devicePass;
-        const rasterId = devicePass.rasterPassInfo.id;
-        const passRenderData = context.renderGraph.getData(rasterId);
-        // CCGlobal
-        this._updateGlobal(passRenderData);
-        // CCCamera, CCShadow, CCCSM
-        const queueId = this._currentQueue.queueId;
-        const queueRenderData = context.renderGraph.getData(queueId)!;
-        this._setMainLightShadowTex(queueRenderData);
-        this._updateGlobal(queueRenderData);
-        if (isEnableEffect()) {
-            const layoutName = context.renderGraph.getLayout(rasterId);
-            const descSetData = getDescriptorSetDataFromLayout(layoutName);
-            mergeSrcToTargetDesc(descSetData!.descriptorSet, context.pipeline.descriptorSet, true);
-        }
-        this._currentQueue.isUpdateUBO = true;
-    }
-
     public submit () {
-        this._updateUbo();
         if (this.graphScene.blit) {
             this._currentQueue.blitDesc!.update();
             return;
@@ -1356,7 +1321,7 @@ class DeviceSceneTask extends WebSceneTask {
     protected _recordShadowMap () {
         const submitMap = context.submitMap;
         const currSubmitInfo = submitMap.get(this.camera!)!.get(this._currentQueue.phaseID)!;
-        currSubmitInfo.shadowMap?.recordCommandBuffer(context.device,
+        currSubmitInfo.shadowMap.get(this.graphScene.sceneID)!.recordCommandBuffer(context.device,
             this._renderPass, context.commandBuffer);
     }
     protected _recordReflectionProbe () {
@@ -1429,10 +1394,54 @@ class DeviceSceneTask extends WebSceneTask {
             this._renderPass,
             context.commandBuffer);
     }
-
+    protected _updateGlobal (data: RenderData) {
+        const devicePass = this._currentQueue.devicePass;
+        updateGlobalDescBinding(data, isEnableEffect() ? context.renderGraph.getLayout(devicePass.rasterPassInfo.id) : 'default');
+        if (!isEnableEffect()) context.pipeline.descriptorSet.update();
+    }
+    protected _setMainLightShadowTex (data: RenderData) {
+        const graphScene = this.graphScene;
+        if (graphScene.scene && graphScene.scene.camera) {
+            const mainLight = graphScene.scene.camera.scene!.mainLight;
+            const shadowFrameBufferMap = this.sceneData.shadowFrameBufferMap;
+            if (mainLight && shadowFrameBufferMap.has(mainLight)) {
+                const shadowAttrID = context.layoutGraph.attributeIndex.get('cc_shadowMap');
+                const defaultTex = builtinResMgr.get<Texture2D>('default-texture').getGFXTexture()!;
+                for (const [key, value] of data.textures) {
+                    if (key === shadowAttrID) {
+                        const tex = data.textures.get(shadowAttrID);
+                        if (tex === defaultTex) {
+                            data.textures.set(key, shadowFrameBufferMap.get(mainLight)!.colorTextures[0]!);
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    protected _updateRenderData () {
+        if (this._currentQueue.isUpdateUBO) return;
+        const devicePass = this._currentQueue.devicePass;
+        const rasterId = devicePass.rasterPassInfo.id;
+        const passRenderData = context.renderGraph.getData(rasterId);
+        // CCGlobal
+        this._updateGlobal(passRenderData);
+        // CCCamera, CCShadow, CCCSM
+        const queueId = this._currentQueue.queueId;
+        const queueRenderData = context.renderGraph.getData(queueId)!;
+        this._setMainLightShadowTex(queueRenderData);
+        this._updateGlobal(queueRenderData);
+        if (isEnableEffect()) {
+            const layoutName = context.renderGraph.getLayout(rasterId);
+            const descSetData = getDescriptorSetDataFromLayout(layoutName);
+            mergeSrcToTargetDesc(descSetData!.descriptorSet, context.pipeline.descriptorSet, true);
+        }
+        this._currentQueue.isUpdateUBO = true;
+    }
     public submit () {
         const devicePass = this._currentQueue.devicePass;
         const queueViewport = this._currentQueue.viewport;
+        this._updateRenderData();
         if (queueViewport) {
             this.visitor.setViewport(queueViewport);
             this.visitor.setScissor(this._currentQueue.scissor!);
@@ -1717,7 +1726,7 @@ class BlitInfo {
 }
 
 class ExecutorContext {
-    constructor (pipeline: Pipeline,
+    constructor (pipeline: BasicPipeline,
         ubo: PipelineUBO,
         device: Device,
         resourceGraph: ResourceGraph,
@@ -1755,7 +1764,7 @@ class ExecutorContext {
         this.blit.resize(width, height);
     }
     readonly device: Device;
-    readonly pipeline: Pipeline;
+    readonly pipeline: BasicPipeline;
     readonly commandBuffer: CommandBuffer;
     readonly pipelineSceneData: PipelineSceneData;
     readonly resourceGraph: ResourceGraph;
@@ -1807,7 +1816,7 @@ class ResourceVisitor implements ResourceGraphVisitor {
 }
 
 export class Executor {
-    constructor (pipeline: Pipeline,
+    constructor (pipeline: BasicPipeline,
         ubo: PipelineUBO,
         device: Device,
         resourceGraph: ResourceGraph,
