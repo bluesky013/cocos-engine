@@ -196,6 +196,16 @@ void CCVKSwapchain::doInit(const SwapchainInfo &info) {
         if (surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT) {
             imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         }
+        
+        // Enable sampled on swap chain images if supported
+        if (surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_SAMPLED_BIT) {
+            imageUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+        }
+
+        // Enable input attachment on swap chain images if supported
+        if (surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) {
+            imageUsage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+        }
 
         _gpuSwapchain->createInfo.surface = _gpuSwapchain->vkSurface;
         _gpuSwapchain->createInfo.minImageCount = desiredNumberOfSwapchainImages;
