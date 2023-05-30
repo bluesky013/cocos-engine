@@ -1077,7 +1077,7 @@ struct RenderGraphUploadVisitor : boost::dfs_visitor<> {
             for (const auto& [resName, rasterView] : subpass.rasterViews) {
                 const auto resID = vertex(resName, ctx.resourceGraph);
                 auto ragId = ctx.fgd.resourceAccessGraph.passIndex.at(vertID);
-                auto &attachments = ctx.fgd.resourceAccessGraph.access[ragId].attachmentStatus;
+                const auto &attachments = ctx.fgd.resourceAccessGraph.access[ragId].attachmentStatus;
                 auto resIter = std::find_if(attachments.begin(), attachments.end(), [resID](const AccessStatus& status) {
                     return status.vertID == resID;
                 });
@@ -1096,8 +1096,7 @@ struct RenderGraphUploadVisitor : boost::dfs_visitor<> {
             auto& set = iter->second;
             const auto& user = get(RenderGraph::DataTag{}, ctx.g, vertID);
             auto& node = ctx.context.layoutGraphResources.at(layoutID);
-            auto fgdID = ctx.fgd.resourceAccessGraph.passIndex.at(vertID);
-            auto &accessNode = ctx.fgd.resourceAccessGraph.access[fgdID];
+            const auto& accessNode = ctx.fgd.getAttachmentStatus(vertID);
 
             auto* perPassSet = initDescriptorSet(
                 ctx.resourceGraph,
