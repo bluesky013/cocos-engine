@@ -866,9 +866,9 @@ export function buildLightingPass (camera: Camera, ppl: BasicPipeline, gBuffer: 
         }
     }
     if (ppl.containsResource(gBuffer.color)) {
-        lightingPass.addTexture(gBuffer.color, 'gAlbedoMap');
-        lightingPass.addTexture(gBuffer.normal, 'gNormalMap');
-        lightingPass.addTexture(gBuffer.emissive, 'gEmissiveMap');
+        lightingPass.addTexture(gBuffer.color, 'albedoMap');
+        lightingPass.addTexture(gBuffer.normal, 'normalMap');
+        lightingPass.addTexture(gBuffer.emissive, 'emissiveMap');
         lightingPass.addTexture(gBuffer.ds, 'depthStencil');
     }
     const lightingClearColor = new Color(0, 0, 0, 0);
@@ -1066,9 +1066,9 @@ export function buildNativeDeferredPipeline (camera: Camera, ppl: BasicPipeline)
             camera.clearFlag,
             lightingClearColor));
 
-        lightingPass.addComputeView('Albedo', new ComputeView('gAlbedoMap'));
-        lightingPass.addComputeView('Normal', new ComputeView('gNormalMap'));
-        lightingPass.addComputeView('Emissive', new ComputeView('gEmissiveMap'));
+        lightingPass.addComputeView('Albedo', new ComputeView('albedoMap'));
+        lightingPass.addComputeView('Normal', new ComputeView('normalMap'));
+        lightingPass.addComputeView('Emissive', new ComputeView('emissiveMap'));
         lightingPass.addComputeView('DepthStencil', new ComputeView('depthStencil'));
 
         lightingPass.addQueue(QueueHint.RENDER_TRANSPARENT).addCameraQuad(
@@ -2243,7 +2243,7 @@ export function buildLightClusterBuildPass (camera: Camera, clusterData: Cluster
 
     const clusterPass = ppl.addComputePass('cluster-build-cs');
     clusterPass.addStorageBuffer(clusterBufferName, AccessType.WRITE, 'b_clustersBuffer');
-    clusterPass.addQueue('cluster-build-cs')
+    clusterPass.addQueue()
         .addDispatch(clusterData.dispatchX, clusterData.dispatchY, clusterData.dispatchZ, clusterData.clusterBuildCS, 0);
 
     const width = camera.width * ppl.pipelineSceneData.shadingScale;
@@ -2280,7 +2280,7 @@ export function buildLightClusterCullingPass (camera: Camera, clusterData: Clust
     clusterPass.addStorageBuffer(clusterLightIndicesBufferName, AccessType.WRITE, 'b_clusterLightIndicesBuffer');
     clusterPass.addStorageBuffer(clusterLightGridBufferName, AccessType.WRITE, 'b_clusterLightGridBuffer');
     clusterPass.addStorageBuffer(clusterGlobalIndexBufferName, AccessType.WRITE, 'b_globalIndexBuffer');
-    clusterPass.addQueue('cluster-culling-cs')
+    clusterPass.addQueue()
         .addDispatch(clusterData.dispatchX, clusterData.dispatchY, clusterData.dispatchZ, clusterData.clusterLightCullingCS, 0);
 
     const width = camera.width * ppl.pipelineSceneData.shadingScale;
