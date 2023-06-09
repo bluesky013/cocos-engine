@@ -63,9 +63,8 @@ CCProgram lighting-fs-tiled %{
       2.0 * coord.z - 1.0);
       #endif
 
-    #ifdef _CC_METAL_
-      ndc.y = -ndc.y;
-    #endif  
+    
+    CC_HANDLE_SAMPLE_NDC_FLIP_STATIC(ndc.y);
     return GetWorldPosFromNDCPosRH(ndc, cc_matProj, cc_matViewProjInv);
   }
 
@@ -146,9 +145,7 @@ CCProgram lighting-fs %{
       2.0 * coord.z - 1.0);
       #endif
 
-    #ifdef _CC_METAL_
-      ndc.y = -ndc.y;
-    #endif  
+    CC_HANDLE_SAMPLE_NDC_FLIP_STATIC(ndc.y);
     return GetWorldPosFromNDCPosRH(ndc, cc_matProj, cc_matViewProjInv);
   }
 
