@@ -459,5 +459,9 @@ SampleCount DeviceAgent::getMaxSampleCount(Format format, TextureUsage usage, Te
     return _actor->getMaxSampleCount(format, usage, flags);
 }
 
+PipelineStatisticFlags DeviceAgent::getSupportedPipelineStatisticFlags(PipelineStatisticFlags flags) const {
+    return _actor->getSupportedPipelineStatisticFlags(flags);
+}
+
 } // namespace gfx
 } // namespace cc

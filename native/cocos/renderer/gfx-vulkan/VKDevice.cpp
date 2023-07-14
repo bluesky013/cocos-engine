@@ -1103,5 +1103,9 @@ SampleCount CCVKDevice::getMaxSampleCount(Format format, TextureUsage usage, Tex
     return SampleCount::X1;
 }
 
+PipelineStatisticFlags CCVKDevice::getSupportedPipelineStatisticFlags(PipelineStatisticFlags flags) const {
+    return flags;
+}
+
 } // namespace gfx
 } // namespace cc

@@ -356,5 +356,9 @@ SampleCount DeviceValidator::getMaxSampleCount(Format format, TextureUsage usage
     return _actor->getMaxSampleCount(format, usage, flags);
 }
 
+PipelineStatisticFlags DeviceValidator::getSupportedPipelineStatisticFlags(PipelineStatisticFlags flags) const {
+    return _actor->getSupportedPipelineStatisticFlags(flags);
+}
+
 } // namespace gfx
 } // namespace cc

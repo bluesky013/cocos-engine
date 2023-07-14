@@ -66,6 +66,7 @@ protected:
     QueryType _type{QueryType::OCCLUSION};
     uint32_t _maxQueryObjects{0};
     bool _forceWait{true};
+    PipelineStatisticFlags _psFlags{0};
     std::mutex _mutex;
     ccstd::unordered_map<uint32_t, uint64_t> _results;
 };

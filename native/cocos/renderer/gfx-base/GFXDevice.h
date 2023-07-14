@@ -129,6 +129,10 @@ public:
         return SampleCount::X1;
     };
 
+    virtual PipelineStatisticFlags getSupportedPipelineStatisticFlags(PipelineStatisticFlags flags) const {
+        return PipelineStatisticFlags{0};
+    }
+
 protected:
     static Device *instance;
     static bool isSupportDetachDeviceThread;

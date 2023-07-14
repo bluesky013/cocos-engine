@@ -36,6 +36,7 @@ QueryPool::~QueryPool() = default;
 void QueryPool::initialize(const QueryPoolInfo &info) {
     _type = info.type;
     _maxQueryObjects = info.maxQueryObjects;
+    _psFlags = info.pipelineStatisticFlags;
     _forceWait = info.forceWait;
 
     doInit(info);

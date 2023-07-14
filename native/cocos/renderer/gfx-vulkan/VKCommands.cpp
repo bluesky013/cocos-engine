@@ -112,6 +112,11 @@ void cmdFuncCCVKCreateQueryPool(CCVKDevice *device, CCVKGPUQueryPool *gpuQueryPo
     queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
     queryPoolInfo.queryType = mapVkQueryType(gpuQueryPool->type);
     queryPoolInfo.queryCount = gpuQueryPool->maxQueryObjects;
+
+    if (queryPoolInfo.queryType == VK_QUERY_TYPE_PIPELINE_STATISTICS) {
+        queryPoolInfo.queryCount = mapVKPipelineStatisticFlags(gpuQueryPool->psFlags, queryPoolInfo.pipelineStatistics);
+    }
+
     VK_CHECK(vkCreateQueryPool(device->gpuDevice()->vkDevice, &queryPoolInfo, nullptr, &gpuQueryPool->vkPool));
 }
 

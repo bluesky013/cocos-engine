@@ -106,6 +106,7 @@ public:
 
     void updateBackBufferCount(uint32_t backBufferCount);
     SampleCount getMaxSampleCount(Format format, TextureUsage usage, TextureFlags flags) const override;
+    PipelineStatisticFlags getSupportedPipelineStatisticFlags(PipelineStatisticFlags flags) const override;
 protected:
     static CCVKDevice *instance;
 

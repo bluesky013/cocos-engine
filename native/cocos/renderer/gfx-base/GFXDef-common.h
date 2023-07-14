@@ -811,6 +811,19 @@ enum class PassType : uint32_t {
 };
 CC_ENUM_CONVERSION_OPERATOR(PassType);
 
+enum class PipelineStatisticFlagBit : uint32_t {
+    IA_VERTICES = 0x01,
+    IA_PRIMITIVES = 0x02,
+    VS_INVOCATIONS = 0x04,
+    CLIP_INVOCATIONS = 0x08,
+    CLIP_PRIMITIVES = 0x10,
+    FS_INVOCATIONS = 0x20,
+    CS_INVOCATIONS = 0x40,
+    ALL = IA_VERTICES | IA_PRIMITIVES | VS_INVOCATIONS | CLIP_INVOCATIONS | CLIP_PRIMITIVES | FS_INVOCATIONS | CS_INVOCATIONS
+};
+using PipelineStatisticFlags = PipelineStatisticFlagBit;
+CC_ENUM_BITWISE_OPERATORS(PipelineStatisticFlags);
+
 #define EXPOSE_COPY_FN(type)      \
     type &copy(const type &rhs) { \
         *this = rhs;              \
@@ -1558,6 +1571,7 @@ struct QueueInfo {
 struct QueryPoolInfo {
     QueryType type{QueryType::OCCLUSION};
     uint32_t maxQueryObjects{DEFAULT_MAX_QUERY_OBJECTS};
+    PipelineStatisticFlags pipelineStatisticFlags{0};
     bool forceWait{true};
 
     EXPOSE_COPY_FN(QueryPoolInfo)

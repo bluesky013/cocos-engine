@@ -69,6 +69,7 @@ VkShaderStageFlagBits mapVkShaderStageFlagBits(ShaderStageFlagBit stage);
 VkShaderStageFlags mapVkShaderStageFlags(ShaderStageFlagBit stages);
 SurfaceTransform mapSurfaceTransform(VkSurfaceTransformFlagBitsKHR transform);
 ccstd::string mapVendorName(uint32_t vendorID);
+uint32_t mapVKPipelineStatisticFlags(PipelineStatisticFlags flags, VkQueryPipelineStatisticFlags &vkFlags);
 
 void fullPipelineBarrier(VkCommandBuffer cmdBuff);
 const ThsvsAccessType *getAccessType(AccessFlagBit flag);

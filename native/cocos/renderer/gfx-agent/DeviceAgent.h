@@ -107,6 +107,7 @@ public:
 
     void enableAutoBarrier(bool en) override;
     SampleCount getMaxSampleCount(Format format, TextureUsage usage, TextureFlags flags) const override;
+    PipelineStatisticFlags getSupportedPipelineStatisticFlags(PipelineStatisticFlags flags) const override;
 protected:
     static DeviceAgent *instance;
 
