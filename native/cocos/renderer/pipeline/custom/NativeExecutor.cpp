@@ -323,6 +323,17 @@ PersistentRenderPassAndFramebuffer& fetchOrCreateFramebuffer(
     return iter->second;
 }
 
+std::string getPassName(const RenderGraph& g, RenderGraph::vertex_descriptor v) noexcept {
+    std::stringstream ss;
+    const auto &name = get(RenderGraph::NameTag{}, g, v);
+    if (name.empty()) {
+        ss << "GraphPass_" << v;
+        return ss.str();
+    }
+
+    return name.c_str();
+}
+
 struct RenderGraphFilter {
     bool operator()(RenderGraph::vertex_descriptor u) const {
         return validPasses->operator[](u);
@@ -1331,6 +1342,7 @@ struct RenderGraphVisitor : boost::dfs_visitor<> {
                 scissor, data.clearColors.data(),
                 data.clearDepth, data.clearStencil);
 
+            ctx.context.pipelineProfiler.writeGpuTimeStamp(cmdBuff, vertID);
             ctx.currentPass = data.renderPass.get();
         }
 
@@ -1657,7 +1669,9 @@ struct RenderGraphVisitor : boost::dfs_visitor<> {
 
         if (pass.showStatistics) {
             submitProfilerCommands(ctx, vertID, pass);
+            ctx.context.pipelineProfiler.render(ctx.currentPass, ctx.subpassIndex, ctx.cmdBuff);
         }
+        ctx.context.pipelineProfiler.writeGpuTimeStamp(ctx.cmdBuff, vertID);
         ctx.cmdBuff->endRenderPass();
         ctx.currentPass = nullptr;
         ctx.currentPassLayoutID = LayoutGraphData::null_vertex();
@@ -2074,6 +2088,26 @@ struct CommandSubmitter {
     gfx::CommandBuffer* primaryCommandBuffer = nullptr;
 };
 
+struct PipelineStatisticsRecorder {
+    PipelineStatisticsRecorder(NativePipeline& pipeline, const std::vector<gfx::CommandBuffer*>& cmdBuffers, uint32_t passCount)
+    : context(pipeline.nativeContext) {
+        CC_EXPECTS(cmdBuffers.size() == 1);
+        primaryCommandBuffer = cmdBuffers.at(0);
+        context.pipelineProfiler.resolveData(pipeline);
+        context.pipelineProfiler.beginFrame(passCount, primaryCommandBuffer);
+    }
+
+    ~PipelineStatisticsRecorder() {
+        context.pipelineProfiler.endFrame(primaryCommandBuffer);
+    }
+
+    PipelineStatisticsRecorder(const PipelineStatisticsRecorder &) = delete;
+    PipelineStatisticsRecorder &operator=(const PipelineStatisticsRecorder &) = delete;
+
+    NativeRenderContext& context;
+    gfx::CommandBuffer* primaryCommandBuffer = nullptr;
+};
+
 void extendResourceLifetime(const NativeRenderQueue& queue, ResourceGroup& group) {
     // keep instanceBuffers
     for (const auto& batch : queue.opaqueInstancingQueue.sortedBatches) {
@@ -2191,6 +2225,7 @@ void NativePipeline::executeRenderGraph(const RenderGraph& rg) {
             fg(graphView, boost::keep_all{}, RenderGraphFilter{&validPasses});
 
         CommandSubmitter submit(ppl.device, ppl.getCommandBuffers());
+        PipelineStatisticsRecorder pipelineStatisticsRecorder(ppl, ppl.getCommandBuffers(), num_vertices(rg));
 
         // upload buffers
         {
