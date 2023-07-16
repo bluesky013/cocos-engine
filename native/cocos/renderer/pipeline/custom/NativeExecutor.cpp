@@ -2047,6 +2047,7 @@ struct RenderGraphContextCleaner {
         context.clearPreviousResources(prevFenceValue);
         context.renderSceneResources.clear();
         context.sceneCulling.clear();
+        context.timeQuery.clear();
     }
     RenderGraphContextCleaner(const RenderGraphContextCleaner&) = delete;
     RenderGraphContextCleaner& operator=(const RenderGraphContextCleaner&) = delete;

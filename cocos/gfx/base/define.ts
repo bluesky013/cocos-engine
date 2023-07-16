@@ -700,6 +700,7 @@ export enum PassType {
 }
 
 export enum PipelineStatisticFlagBit {
+    NONE = 0,
     IA_VERTICES = 0x01,
     IA_PRIMITIVES = 0x02,
     VS_INVOCATIONS = 0x04,

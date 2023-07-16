@@ -41,6 +41,7 @@
 #include "cocos/renderer/pipeline/custom/NativeTypes.h"
 #include "cocos/renderer/pipeline/custom/details/Map.h"
 #include "cocos/renderer/pipeline/custom/details/Set.h"
+#include "cocos/renderer/pipeline/profile/GPUTimeQuery.h"
 
 #ifdef _MSC_VER
     #pragma warning(push)
@@ -1168,6 +1169,7 @@ struct NativeRenderContext {
     ccstd::pmr::unordered_map<const scene::RenderScene*, SceneResource> renderSceneResources;
     QuadResource fullscreenQuad;
     SceneCulling sceneCulling;
+    GPUTimeQuery timeQuery;
 };
 
 class NativeProgramLibrary final : public ProgramLibrary {

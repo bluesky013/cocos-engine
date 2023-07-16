@@ -812,6 +812,7 @@ enum class PassType : uint32_t {
 CC_ENUM_CONVERSION_OPERATOR(PassType);
 
 enum class PipelineStatisticFlagBit : uint32_t {
+    NONE = 0,
     IA_VERTICES = 0x01,
     IA_PRIMITIVES = 0x02,
     VS_INVOCATIONS = 0x04,
@@ -1571,9 +1572,7 @@ struct QueueInfo {
 struct QueryPoolInfo {
     QueryType type{QueryType::OCCLUSION};
     uint32_t maxQueryObjects{DEFAULT_MAX_QUERY_OBJECTS};
-    PipelineStatisticFlags pipelineStatisticFlags{0};
-    bool forceWait{true};
-
+    PipelineStatisticFlags pipelineStatisticFlags{PipelineStatisticFlagBit::NONE};
     EXPOSE_COPY_FN(QueryPoolInfo)
 };
 
