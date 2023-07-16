@@ -47,7 +47,6 @@ protected:
     void doDestroy() override;
 
     IntrusivePtr<CCVKGPUQueryPool> _gpuQueryPool;
-    ccstd::vector<uint32_t> _ids;
 };
 
 } // namespace gfx

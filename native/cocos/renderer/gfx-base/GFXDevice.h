@@ -129,8 +129,10 @@ public:
         return SampleCount::X1;
     };
 
-    virtual PipelineStatisticFlags getSupportedPipelineStatisticFlags(PipelineStatisticFlags flags) const {
-        return PipelineStatisticFlags{0};
+    virtual uint32_t getSupportedPipelineStatisticFlags(const PipelineStatisticFlags &flags, PipelineStatisticFlags &outFlags) const {
+        std::ignore = flags;
+        std::ignore = outFlags;
+        return 0;
     }
 
 protected:

@@ -406,8 +406,9 @@ export abstract class Device {
      * @en Get supported pipeline statistic flags by device query.
      * @zh 获取可通过设备查询获取的管线硬件数据类型
      * @param flags Pipeline statistic flag to be tested.
+     * @param outFlags Pipeline statistic flag test result.
      */
-    public getSupportedPipelineStatisticFlags (flags: PipelineStatisticFlags): PipelineStatisticFlags {
+    public getSupportedPipelineStatisticFlags (flags: Readonly<PipelineStatisticFlags>, outFlags: PipelineStatisticFlags): number {
         return 0;
     }
 }

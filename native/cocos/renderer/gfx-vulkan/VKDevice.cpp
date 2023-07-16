@@ -338,7 +338,7 @@ bool CCVKDevice::doInit(const DeviceInfo & /*info*/) {
     queueInfo.type = QueueType::GRAPHICS;
     _queue = createQueue(queueInfo);
 
-    QueryPoolInfo queryPoolInfo{QueryType::OCCLUSION, DEFAULT_MAX_QUERY_OBJECTS, false};
+    QueryPoolInfo queryPoolInfo{QueryType::OCCLUSION, DEFAULT_MAX_QUERY_OBJECTS, {}, false};
     _queryPool = createQueryPool(queryPoolInfo);
 
     CommandBufferInfo cmdBuffInfo;
@@ -941,47 +941,47 @@ void CCVKDevice::copyTextureToBuffers(Texture *srcTexture, uint8_t *const *buffe
 
 void CCVKDevice::getQueryPoolResults(QueryPool *queryPool) {
     CC_PROFILE(CCVKDeviceGetQueryPoolResults);
-    auto *vkQueryPool = static_cast<CCVKQueryPool *>(queryPool);
-    auto queryCount = static_cast<uint32_t>(vkQueryPool->_ids.size());
-    CC_ASSERT(queryCount <= vkQueryPool->getMaxQueryObjects());
-
-    const bool bWait = queryPool->getForceWait();
-    uint32_t width = bWait ? 1U : 2U;
-    uint64_t stride = sizeof(uint64_t) * width;
-    VkQueryResultFlagBits flag = bWait ? VK_QUERY_RESULT_WAIT_BIT : VK_QUERY_RESULT_WITH_AVAILABILITY_BIT;
-    ccstd::vector<uint64_t> results(queryCount * width, 0);
-
-    if (queryCount > 0U) {
-        VkResult result = vkGetQueryPoolResults(
-            gpuDevice()->vkDevice,
-            vkQueryPool->_gpuQueryPool->vkPool,
-            0,
-            queryCount,
-            static_cast<size_t>(queryCount * stride),
-            results.data(),
-            stride,
-            VK_QUERY_RESULT_64_BIT | flag);
-        CC_ASSERT(result == VK_SUCCESS || result == VK_NOT_READY);
-    }
-
-    ccstd::unordered_map<uint32_t, uint64_t> mapResults;
-    for (auto queryId = 0U; queryId < queryCount; queryId++) {
-        uint32_t offset = queryId * width;
-        if (bWait || results[offset + 1] > 0) {
-            uint32_t id = vkQueryPool->_ids[queryId];
-            auto iter = mapResults.find(id);
-            if (iter != mapResults.end()) {
-                iter->second += results[offset];
-            } else {
-                mapResults[id] = results[offset];
-            }
-        }
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(vkQueryPool->_mutex);
-        vkQueryPool->_results = std::move(mapResults);
-    }
+//    auto *vkQueryPool = static_cast<CCVKQueryPool *>(queryPool);
+//    auto queryCount = static_cast<uint32_t>(vkQueryPool->_ids.size());
+//    CC_ASSERT(queryCount <= vkQueryPool->getMaxQueryObjects());
+//
+//    const bool bWait = queryPool->getForceWait();
+//    uint32_t width = bWait ? 1U : 2U;
+//    uint64_t stride = sizeof(uint64_t) * width;
+//    VkQueryResultFlagBits flag = bWait ? VK_QUERY_RESULT_WAIT_BIT : VK_QUERY_RESULT_WITH_AVAILABILITY_BIT;
+//    ccstd::vector<uint64_t> results(queryCount * width, 0);
+//
+//    if (queryCount > 0U) {
+//        VkResult result = vkGetQueryPoolResults(
+//            gpuDevice()->vkDevice,
+//            vkQueryPool->_gpuQueryPool->vkPool,
+//            0,
+//            queryCount,
+//            static_cast<size_t>(queryCount * stride),
+//            results.data(),
+//            stride,
+//            VK_QUERY_RESULT_64_BIT | flag);
+//        CC_ASSERT(result == VK_SUCCESS || result == VK_NOT_READY);
+//    }
+//
+//    ccstd::unordered_map<uint32_t, uint64_t> mapResults;
+//    for (auto queryId = 0U; queryId < queryCount; queryId++) {
+//        uint32_t offset = queryId * width;
+//        if (bWait || results[offset + 1] > 0) {
+//            uint32_t id = vkQueryPool->_ids[queryId];
+//            auto iter = mapResults.find(id);
+//            if (iter != mapResults.end()) {
+//                iter->second += results[offset];
+//            } else {
+//                mapResults[id] = results[offset];
+//            }
+//        }
+//    }
+//
+//    {
+//        std::lock_guard<std::mutex> lock(vkQueryPool->_mutex);
+//        vkQueryPool->_results = std::move(mapResults);
+//    }
 }
 
 //////////////////////////// Function Fallbacks /////////////////////////////////////////
@@ -1103,8 +1103,26 @@ SampleCount CCVKDevice::getMaxSampleCount(Format format, TextureUsage usage, Tex
     return SampleCount::X1;
 }
 
-PipelineStatisticFlags CCVKDevice::getSupportedPipelineStatisticFlags(PipelineStatisticFlags flags) const {
-    return flags;
+uint32_t CCVKDevice::getSupportedPipelineStatisticFlags(const PipelineStatisticFlags &flags, PipelineStatisticFlags &outFlags) const {
+    static constexpr PipelineStatisticFlagBit SUPPORTED_FLAGS[] = {
+        PipelineStatisticFlagBit::IA_VERTICES,
+        PipelineStatisticFlagBit::IA_PRIMITIVES,
+        PipelineStatisticFlagBit::VS_INVOCATIONS,
+        PipelineStatisticFlagBit::CLIP_INVOCATIONS,
+        PipelineStatisticFlagBit::CLIP_PRIMITIVES,
+        PipelineStatisticFlagBit::FS_INVOCATIONS,
+        PipelineStatisticFlagBit::CS_INVOCATIONS,
+    };
+    uint32_t count = 0;
+    outFlags = PipelineStatisticFlagBit {0};
+
+    for (const auto &support : SUPPORTED_FLAGS) {
+        if (hasFlag(flags, support)) {
+            outFlags |= support;
+            ++count;
+        }
+    }
+    return count;
 }
 
 } // namespace gfx

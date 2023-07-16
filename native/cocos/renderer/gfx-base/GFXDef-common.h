@@ -822,7 +822,7 @@ enum class PipelineStatisticFlagBit : uint32_t {
     ALL = IA_VERTICES | IA_PRIMITIVES | VS_INVOCATIONS | CLIP_INVOCATIONS | CLIP_PRIMITIVES | FS_INVOCATIONS | CS_INVOCATIONS
 };
 using PipelineStatisticFlags = PipelineStatisticFlagBit;
-CC_ENUM_BITWISE_OPERATORS(PipelineStatisticFlags);
+CC_ENUM_BITWISE_OPERATORS(PipelineStatisticFlagBit);
 
 #define EXPOSE_COPY_FN(type)      \
     type &copy(const type &rhs) { \
@@ -1618,6 +1618,16 @@ struct DynamicStates {
     DynamicStencilStates stencilStatesBack;
 
     EXPOSE_COPY_FN(DynamicStates)
+};
+
+struct PipelineStatisticData {
+    uint64_t inputAssemblyVertices;
+    uint64_t inputAssemblyPrimitives;
+    uint64_t vsInvocations;
+    uint64_t clipInvocations;
+    uint64_t clipPrimitives;
+    uint64_t fsInvocations;
+    uint64_t csInvocations;
 };
 
 #undef EXPOSE_COPY_FN

@@ -40,37 +40,28 @@ VkQueryType mapVkQueryType(QueryType type) {
     }
 }
 
-uint32_t mapVKPipelineStatisticFlags(PipelineStatisticFlags flags, VkQueryPipelineStatisticFlags &vkFlags) {
-    uint32_t count = 0;
+void mapVKPipelineStatisticFlags(PipelineStatisticFlags flags, VkQueryPipelineStatisticFlags &vkFlags) {
     if (hasFlag(flags, PipelineStatisticFlagBit::IA_VERTICES)) {
         vkFlags |= VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT;
-        ++count;
     }
     if (hasFlag(flags, PipelineStatisticFlagBit::IA_PRIMITIVES)) {
         vkFlags |= VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT;
-        ++count;
     }
     if (hasFlag(flags, PipelineStatisticFlagBit::VS_INVOCATIONS)) {
         vkFlags |= VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT;
-        ++count;
     }
     if (hasFlag(flags, PipelineStatisticFlagBit::CLIP_INVOCATIONS)) {
         vkFlags |= VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT;
-        ++count;
     }
     if (hasFlag(flags, PipelineStatisticFlagBit::CLIP_PRIMITIVES)) {
         vkFlags |= VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT;
-        ++count;
     }
     if (hasFlag(flags, PipelineStatisticFlagBit::FS_INVOCATIONS)) {
         vkFlags |= VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT;
-        ++count;
     }
     if (hasFlag(flags, PipelineStatisticFlagBit::CS_INVOCATIONS)) {
         vkFlags |= VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT;
-        ++count;
     }
-    return count;
 }
 
 VkFormat mapVkFormat(Format format, const CCVKGPUDevice *gpuDevice) {
