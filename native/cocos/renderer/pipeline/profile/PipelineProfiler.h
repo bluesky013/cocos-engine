@@ -1,5 +1,5 @@
 /****************************************************************************
- Copyright (c) 2020-2023 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2023-2023 Xiamen Yaji Software Co., Ltd.
 
  http://www.cocos.com
 
@@ -24,36 +24,26 @@
 
 #pragma once
 
-#include "VKStd.h"
-#include "gfx-base/GFXBuffer.h"
-#include "gfx-vulkan/VKGPUObjects.h"
+#include "base/std/container/unordered_map.h"
+#include "GPUTimeQuery.h"
 
-namespace cc {
-namespace gfx {
+namespace cc::render {
+struct NativePipeline;
 
-class CC_VULKAN_API CCVKBuffer final : public Buffer {
+class PipelineProfiler {
 public:
-    CCVKBuffer();
-    ~CCVKBuffer() override;
+    PipelineProfiler() = default;
+    ~PipelineProfiler() = default;
 
-    void update(const void *buffer, uint32_t size) override;
-    void readBack(void *dst, uint32_t offset, uint32_t size) override;
+    void beginFrame(uint32_t passCount, gfx::CommandBuffer *cmdBuffer);
+    void endFrame(gfx::CommandBuffer *cmdBuffer);
+    void resolveData(NativePipeline &pipeline);
 
-    inline CCVKGPUBuffer *gpuBuffer() const { return _gpuBuffer; }
-    inline CCVKGPUBufferView *gpuBufferView() const { return _gpuBufferView; }
+    void writeGpuTimeStamp(gfx::CommandBuffer *cmdBuffer, uint32_t passID);
 
-protected:
-    void doInit(const BufferInfo &info) override;
-    void doInit(const BufferViewInfo &info) override;
-    void doDestroy() override;
-    void doResize(uint32_t size, uint32_t count) override;
-
-    void createBuffer(uint32_t size, uint32_t count);
-    void createBufferView(uint32_t range);
-
-    IntrusivePtr<CCVKGPUBuffer> _gpuBuffer;
-    IntrusivePtr<CCVKGPUBufferView> _gpuBufferView;
+private:
+    GPUTimeQuery timeQuery;
+    ccstd::unordered_map<uint32_t, uint64_t> passTimes;
 };
 
-} // namespace gfx
-} // namespace cc
+} // namespace cc::render

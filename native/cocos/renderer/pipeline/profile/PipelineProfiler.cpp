@@ -1,5 +1,5 @@
 /****************************************************************************
- Copyright (c) 2020-2023 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2023-2023 Xiamen Yaji Software Co., Ltd.
 
  http://www.cocos.com
 
@@ -22,38 +22,38 @@
  THE SOFTWARE.
 ****************************************************************************/
 
-#pragma once
+#include "PipelineProfiler.h"
+#include "cocos/renderer/pipeline/custom/NativePipelineTypes.h"
 
-#include "VKStd.h"
-#include "gfx-base/GFXBuffer.h"
-#include "gfx-vulkan/VKGPUObjects.h"
+namespace cc::render {
 
-namespace cc {
-namespace gfx {
+void PipelineProfiler::beginFrame(uint32_t passCount, gfx::CommandBuffer *cmdBuffer) {
+    timeQuery.resize(passCount * 2);
+    timeQuery.reset(cmdBuffer);
+    passTimes.clear();
+}
 
-class CC_VULKAN_API CCVKBuffer final : public Buffer {
-public:
-    CCVKBuffer();
-    ~CCVKBuffer() override;
+void PipelineProfiler::endFrame(gfx::CommandBuffer *cmdBuffer) {
+    timeQuery.copyResult(cmdBuffer);
+}
 
-    void update(const void *buffer, uint32_t size) override;
-    void readBack(void *dst, uint32_t offset, uint32_t size) override;
+void PipelineProfiler::writeGpuTimeStamp(gfx::CommandBuffer *cmdBuffer, uint32_t passID) {
+    timeQuery.writeTimestampWithKey(cmdBuffer, passID);
+}
 
-    inline CCVKGPUBuffer *gpuBuffer() const { return _gpuBuffer; }
-    inline CCVKGPUBufferView *gpuBufferView() const { return _gpuBufferView; }
+void PipelineProfiler::resolveData(NativePipeline &pipeline) {
 
-protected:
-    void doInit(const BufferInfo &info) override;
-    void doInit(const BufferViewInfo &info) override;
-    void doDestroy() override;
-    void doResize(uint32_t size, uint32_t count) override;
+    std::vector<std::pair<RenderGraph::vertex_descriptor, uint64_t>> stack;
+    timeQuery.foreachData([this, &stack](const auto &key, uint64_t v) {
+        auto passID = ccstd::get<RenderGraph::vertex_descriptor>(key);
+        if (stack.empty() || stack.back().first != passID) {
+            stack.emplace_back(passID, v);
+        } else {
+            passTimes.emplace(passID, stack.back().second - v);
+            stack.pop_back();
+        }
+    });
+}
 
-    void createBuffer(uint32_t size, uint32_t count);
-    void createBufferView(uint32_t range);
 
-    IntrusivePtr<CCVKGPUBuffer> _gpuBuffer;
-    IntrusivePtr<CCVKGPUBufferView> _gpuBufferView;
-};
-
-} // namespace gfx
-} // namespace cc
+} // namespace cc::render

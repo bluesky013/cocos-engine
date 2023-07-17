@@ -567,7 +567,7 @@ void CommandBufferAgent::writeTimestamp(QueryPool *queryPool, uint32_t id) {
         });
 }
 
-void CommandBufferAgent::getQueryResult(QueryPool *queryPool, Buffer* buffer, uint32_t offset, uint32_t size, uint32_t first, uint32_t count) {
+void CommandBufferAgent::copyQueryResult(QueryPool *queryPool, Buffer* buffer, uint32_t offset, uint32_t stride, uint32_t first, uint32_t count) {
     auto *actorQueryPool = static_cast<QueryPoolAgent *>(queryPool)->getActor();
     auto *actorBuffer = static_cast<BufferAgent *>(buffer)->getActor();
 
@@ -577,11 +577,11 @@ void CommandBufferAgent::getQueryResult(QueryPool *queryPool, Buffer* buffer, ui
         queryPool, actorQueryPool,
         buffer, actorBuffer,
         offset, offset,
-        size, size,
+        stride, stride,
         first, first,
         count, count,
         {
-            actor->getQueryResult(queryPool, buffer, offset, size, first, count);
+            actor->copyQueryResult(queryPool, buffer, offset, stride, first, count);
         });
 }
 

@@ -1210,6 +1210,17 @@ void bufferUpload(const CCVKGPUBufferView &stagingBuffer, CCVKGPUBuffer &gpuBuff
 };
 } // namespace
 
+void cmdFuncCCVKReadBackBuffer(CCVKDevice *device, CCVKGPUBuffer *gpuBuffer, void *dst, uint32_t offset, uint32_t size) {
+    if (!gpuBuffer || gpuBuffer->mappedData == nullptr) return;
+
+    auto curBackBufferIndex = device->gpuDevice()->curBackBufferIndex;
+    auto backBufferCount = device->gpuDevice()->backBufferCount;
+    uint32_t lastBufferIndex = (device->gpuDevice()->curBackBufferIndex + backBufferCount - 1) % backBufferCount;
+
+    uint8_t *src = gpuBuffer->mappedData + lastBufferIndex * gpuBuffer->instanceSize + offset;
+    memcpy(dst, src, size);
+}
+
 void cmdFuncCCVKUpdateBuffer(CCVKDevice *device, CCVKGPUBuffer *gpuBuffer, const void *buffer, uint32_t size, const CCVKGPUCommandBuffer *cmdBuffer) {
     if (!gpuBuffer) return;
 

@@ -607,13 +607,13 @@ void  CommandBufferValidator::writeTimestamp(QueryPool *queryPool, uint32_t id) 
     _actor->writeTimestamp(actorQueryPool, id);
 }
 
-void  CommandBufferValidator::getQueryResult(QueryPool *queryPool, Buffer* buffer, uint32_t offset, uint32_t size, uint32_t first, uint32_t count) {
+void  CommandBufferValidator::copyQueryResult(QueryPool *queryPool, Buffer* buffer, uint32_t offset, uint32_t stride, uint32_t first, uint32_t count) {
     CC_ASSERT(isInited());
     CC_ASSERT(static_cast<QueryPoolValidator *>(queryPool)->isInited());
 
     QueryPool *actorQueryPool = static_cast<QueryPoolValidator *>(queryPool)->getActor();
     Buffer *actorBuffer = static_cast<BufferValidator *>(buffer)->getActor();
-    _actor->getQueryResult(actorQueryPool, actorBuffer, offset, size, first, count);
+    _actor->copyQueryResult(actorQueryPool, actorBuffer, offset, stride, first, count);
 }
 
 void CommandBufferValidator::customCommand(CustomCommand &&cmd) {

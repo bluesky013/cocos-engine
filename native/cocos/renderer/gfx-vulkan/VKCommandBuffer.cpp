@@ -949,7 +949,7 @@ void CCVKCommandBuffer::writeTimestamp(QueryPool *queryPool, uint32_t id) {
     vkCmdWriteTimestamp(_gpuCommandBuffer->vkCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, gpuQueryPool->vkPool, id);
 }
 
-void CCVKCommandBuffer::getQueryResult(QueryPool *queryPool, Buffer* buffer, uint32_t offset, uint32_t size, uint32_t first, uint32_t count) {
+void CCVKCommandBuffer::copyQueryResult(QueryPool *queryPool, Buffer* buffer, uint32_t offset, uint32_t stride, uint32_t first, uint32_t count) {
     auto *vkQueryPool = static_cast<CCVKQueryPool *>(queryPool);
     CCVKGPUQueryPool *gpuQueryPool = vkQueryPool->gpuQueryPool();
 
@@ -958,7 +958,7 @@ void CCVKCommandBuffer::getQueryResult(QueryPool *queryPool, Buffer* buffer, uin
 
     vkCmdCopyQueryPoolResults(_gpuCommandBuffer->vkCommandBuffer,
                               gpuQueryPool->vkPool, first, count,
-                              gpuBuffer->vkBuffer, offset, size,
+                              gpuBuffer->vkBuffer, gpuBuffer->getStartOffset(CCVKDevice::getInstance()->gpuDevice()->curBackBufferIndex) + offset, stride,
                               VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 }
 

@@ -70,7 +70,7 @@ public:
     virtual void endQuery(QueryPool *queryPool, uint32_t id) = 0;
     virtual void resetQueryPool(QueryPool *queryPool, uint32_t first, uint32_t count) = 0;
     virtual void writeTimestamp(QueryPool *queryPool, uint32_t id) {}
-    virtual void getQueryResult(QueryPool *queryPool, Buffer* buffer, uint32_t offset, uint32_t size, uint32_t first, uint32_t count) {}
+    virtual void copyQueryResult(QueryPool *queryPool, Buffer* buffer, uint32_t offset, uint32_t stride, uint32_t first, uint32_t count) {}
     virtual void completeQueryPool(QueryPool *queryPool) {}
 
     using CustomCommand = std::function<void(void *)>;
