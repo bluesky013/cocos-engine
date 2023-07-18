@@ -27,6 +27,8 @@
 #include <math/Vec4.h>
 #include "base/std/container/array.h"
 #include "base/std/container/string.h"
+#include "base/Ptr.h"
+#include "renderer/gfx-base/GFXBuffer.h"
 #include "renderer/gfx-base/GFXDef-common.h"
 
 namespace cc {
@@ -71,18 +73,37 @@ struct DebugFontInfo {
     Vec2 invTextureSize{0.0F, 0.0F};
 };
 
+struct ProfileGlobal {
+
+};
+
 constexpr uint32_t DEBUG_FONT_COUNT = 4U;
 using DebugFontArray = ccstd::array<DebugFontInfo, DEBUG_FONT_COUNT>;
 
 class TextRenderer {
 public:
     TextRenderer() = default;
-    ~TextRenderer() = default;
+    ~TextRenderer();
+
+    void initialize(gfx::Device *device, const DebugRendererInfo &info, uint32_t fontSize);
+    void updateWindowSize(uint32_t width, uint32_t height, uint32_t screenTransform, float flip);
+    void updateTextData();
+    void render(gfx::RenderPass *renderPass, uint32_t subPassId, gfx::CommandBuffer *cmdBuff, pipeline::PipelineSceneData *sceneData);
+
+    void addText(const ccstd::string &text, const Vec2 &screenPos, const DebugTextInfo &info);
+    uint32_t getLineHeight(bool bold = false, bool italic = false) const;
 
 private:
+    void preparePso(gfx::InputAssembler *ia, gfx::RenderPass *renderPass, uint32_t subPassId, pipeline::PipelineSceneData *sceneData);
+
     gfx::Device *_device{nullptr};
     DebugVertexBuffer *_buffer{nullptr};
     DebugFontArray _fonts;
+    IntrusivePtr<gfx::Buffer> _ubo;
+    IntrusivePtr<gfx::DescriptorSetLayout> _descriptorSetLayout;
+    IntrusivePtr<gfx::PipelineLayout> _pipelineLayout;
+    IntrusivePtr<gfx::PipelineState> _pso;
+    uint32_t _psoHash = 0;
 };
 
 class DebugRenderer {
@@ -105,14 +126,10 @@ public:
     void addText(const ccstd::string &text, const Vec2 &screenPos, const DebugTextInfo &info);
 
 private:
-    static void addQuad(DebugBatch &batch, const Vec4 &rect, const Vec4 &uv, gfx::Color color);
     uint32_t getLineHeight(bool bold = false, bool italic = false);
-
     static DebugRenderer *instance;
-    gfx::Device *_device{nullptr};
-    DebugVertexBuffer *_buffer{nullptr};
-    DebugFontArray _fonts;
-
+    std::unique_ptr<TextRenderer> _textRenderer;
+    
     friend class Profiler;
 };
 
