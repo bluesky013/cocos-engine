@@ -326,6 +326,8 @@ bool CCVKDevice::doInit(const DeviceInfo & /*info*/) {
     _caps.maxComputeWorkGroupInvocations = limits.maxComputeWorkGroupInvocations;
     _caps.maxComputeWorkGroupCount = {limits.maxComputeWorkGroupCount[0], limits.maxComputeWorkGroupCount[1], limits.maxComputeWorkGroupCount[2]};
     _caps.maxComputeWorkGroupSize = {limits.maxComputeWorkGroupSize[0], limits.maxComputeWorkGroupSize[1], limits.maxComputeWorkGroupSize[2]};
+    // time query
+    _caps.timestampPeriod = limits.timestampPeriod;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     // UNASSIGNED-BestPractices-vkCreateComputePipelines-compute-work-group-size
     _caps.maxComputeWorkGroupInvocations = std::min(_caps.maxComputeWorkGroupInvocations, 64U);

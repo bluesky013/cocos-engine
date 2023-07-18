@@ -862,6 +862,8 @@ struct DeviceCaps {
     Size maxComputeWorkGroupSize;
     Size maxComputeWorkGroupCount;
 
+    uint32_t timestampPeriod{1};
+
     bool supportQuery{false};
     bool supportVariableRateShading{false};
     bool supportSubPassShading{false};

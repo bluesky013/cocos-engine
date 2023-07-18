@@ -766,6 +766,7 @@ export class DeviceCaps {
         public maxComputeWorkGroupInvocations: number = 0,
         public maxComputeWorkGroupSize: Size = new Size(),
         public maxComputeWorkGroupCount: Size = new Size(),
+        public timestampPeriod: number = 1,
         public supportQuery: boolean = false,
         public clipSpaceMinZ: number = -1,
         public screenSpaceSignY: number = 1,

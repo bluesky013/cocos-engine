@@ -1,8 +1,8 @@
 /****************************************************************************
  Copyright (c) 2021-2023 Xiamen Yaji Software Co., Ltd.
- 
+
  http://www.cocos.com
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights to
@@ -73,6 +73,17 @@ struct DebugFontInfo {
 
 constexpr uint32_t DEBUG_FONT_COUNT = 4U;
 using DebugFontArray = ccstd::array<DebugFontInfo, DEBUG_FONT_COUNT>;
+
+class TextRenderer {
+public:
+    TextRenderer() = default;
+    ~TextRenderer() = default;
+
+private:
+    gfx::Device *_device{nullptr};
+    DebugVertexBuffer *_buffer{nullptr};
+    DebugFontArray _fonts;
+};
 
 class DebugRenderer {
 public:

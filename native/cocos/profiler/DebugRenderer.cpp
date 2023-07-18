@@ -1,8 +1,8 @@
 /****************************************************************************
  Copyright (c) 2021-2023 Xiamen Yaji Software Co., Ltd.
- 
+
  http://www.cocos.com
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights to
@@ -130,14 +130,14 @@ class DebugVertexBuffer {
 public:
     inline void init(gfx::Device *device, uint32_t maxVertices, const gfx::AttributeList &attributes) {
         _maxVertices = maxVertices;
-        _buffer = device->createBuffer({gfx::BufferUsageBit::VERTEX | gfx::BufferUsageBit::TRANSFER_DST,
+        _vertexBuffer = device->createBuffer({gfx::BufferUsageBit::VERTEX | gfx::BufferUsageBit::TRANSFER_DST,
                                         gfx::MemoryUsageBit::DEVICE,
                                         static_cast<uint32_t>(_maxVertices * sizeof(DebugVertex)),
                                         static_cast<uint32_t>(sizeof(DebugVertex))});
 
         gfx::InputAssemblerInfo info;
         info.attributes = attributes;
-        info.vertexBuffers.push_back(_buffer);
+        info.vertexBuffers.push_back(_vertexBuffer);
         _inputAssembler = device->createInputAssembler(info);
         CC_PROFILE_MEMORY_INC(DebugVertexBuffer, static_cast<uint32_t>(_maxVertices * sizeof(DebugVertex)));
     }
@@ -154,7 +154,7 @@ public:
 
         const auto count = std::min(static_cast<uint32_t>(vertices.size()), _maxVertices);
         const auto size = static_cast<uint32_t>(count * sizeof(DebugVertex));
-        _buffer->update(&vertices[0], size);
+        _vertexBuffer->update(&vertices[0], size);
     }
 
     inline void destroy() {
@@ -162,8 +162,8 @@ public:
             CC_SAFE_DELETE(batch);
         }
 
-        CC_SAFE_DESTROY_AND_DELETE(_buffer);
-        CC_SAFE_DESTROY_AND_DELETE(_inputAssembler);
+        _vertexBuffer = nullptr;
+        _inputAssembler = nullptr;
         CC_PROFILE_MEMORY_DEC(DebugVertexBuffer, static_cast<uint32_t>(_maxVertices * sizeof(DebugVertex)));
     }
 
@@ -194,8 +194,8 @@ public:
 private:
     uint32_t _maxVertices{0U};
     std::vector<DebugBatch *> _batches;
-    gfx::Buffer *_buffer{nullptr};
-    gfx::InputAssembler *_inputAssembler{nullptr};
+    IntrusivePtr<gfx::Buffer> _vertexBuffer;
+    IntrusivePtr<gfx::InputAssembler> _inputAssembler;
 
     friend class DebugRenderer;
 };

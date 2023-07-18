@@ -24,6 +24,8 @@
 
 #include "PipelineProfiler.h"
 #include "cocos/renderer/pipeline/custom/NativePipelineTypes.h"
+#include "cocos/renderer/pipeline/custom/RenderGraphGraphs.h"
+#include "cocos/profiler/DebugRenderer.h"
 
 namespace cc::render {
 
@@ -43,16 +45,24 @@ void PipelineProfiler::writeGpuTimeStamp(gfx::CommandBuffer *cmdBuffer, uint32_t
 
 void PipelineProfiler::resolveData(NativePipeline &pipeline) {
 
+    const auto &timestampPeriod = pipeline.device->getCapabilities().timestampPeriod;
     std::vector<std::pair<RenderGraph::vertex_descriptor, uint64_t>> stack;
-    timeQuery.foreachData([this, &stack](const auto &key, uint64_t v) {
+    timeQuery.foreachData([&](const auto &key, uint64_t v) {
         auto passID = ccstd::get<RenderGraph::vertex_descriptor>(key);
         if (stack.empty() || stack.back().first != passID) {
             stack.emplace_back(passID, v);
         } else {
-            passTimes.emplace(passID, stack.back().second - v);
+            passTimes.emplace(passID, (v - stack.back().second) * timestampPeriod);
             stack.pop_back();
         }
     });
+
+#if CC_USE_DEBUG_RENDERER
+    auto *debugRenderer = DebugRenderer::getInstance();
+    for (auto &[passID, time] : passTimes) {
+        auto name = get(RenderGraph::NameTag{}, pipeline.renderGraph, passID);
+    }
+#endif
 }
 
 
