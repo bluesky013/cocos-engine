@@ -23,45 +23,95 @@
 ****************************************************************************/
 
 #include "PipelineProfiler.h"
+#include "base/StringUtil.h"
+#include "application/ApplicationManager.h"
+#include "platform/interfaces/modules/Device.h"
+#include "platform/interfaces/modules/ISystemWindow.h"
+#include "platform/interfaces/modules/ISystemWindowManager.h"
+
+#include "gfx-base/GFXDevice.h"
+#include "profiler/DebugRenderer.h"
+
 #include "cocos/renderer/pipeline/custom/NativePipelineTypes.h"
 #include "cocos/renderer/pipeline/custom/RenderGraphGraphs.h"
-#include "cocos/profiler/DebugRenderer.h"
+
+
 
 namespace cc::render {
 
+PipelineProfiler::PipelineProfiler() {
+#if CC_USE_DEBUG_RENDERER
+    auto debugInfo = DebugRendererInfo();
+    auto *device = gfx::Device::getInstance();
+    const auto *window = CC_GET_MAIN_SYSTEM_WINDOW();
+    const auto &ext = window->getViewSize();
+    const auto width = ext.width * Device::getDevicePixelRatio();
+    const auto height = ext.height * Device::getDevicePixelRatio();
+    auto fontSize = static_cast<uint32_t>(width / 800.0F * static_cast<float>(debugInfo.fontSize));
+    fontSize = fontSize < 10U ? 10U : (fontSize > 20U ? 20U : fontSize);
+
+    _textRenderer = std::make_unique<TextRenderer>();
+    _textRenderer->initialize(device, debugInfo, fontSize);
+    _textRenderer->updateWindowSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height), 0, device->getCombineSignY());
+
+    initMaterial();
+#endif
+}
+
 void PipelineProfiler::beginFrame(uint32_t passCount, gfx::CommandBuffer *cmdBuffer) {
-    timeQuery.resize(passCount * 2);
-    timeQuery.reset(cmdBuffer);
-    passTimes.clear();
+    _timeQuery.resize(passCount * 2);
+    _timeQuery.reset(cmdBuffer);
+    _passTimes.clear();
 }
 
 void PipelineProfiler::endFrame(gfx::CommandBuffer *cmdBuffer) {
-    timeQuery.copyResult(cmdBuffer);
+    _timeQuery.copyResult(cmdBuffer);
 }
 
 void PipelineProfiler::writeGpuTimeStamp(gfx::CommandBuffer *cmdBuffer, uint32_t passID) {
-    timeQuery.writeTimestampWithKey(cmdBuffer, passID);
+    _timeQuery.writeTimestampWithKey(cmdBuffer, passID);
+}
+
+void PipelineProfiler::initMaterial() {
+#if CC_USE_DEBUG_RENDERER
+    IMaterialInfo matInfo = {};
+    matInfo.effectName = "internal/builtin-debug-renderer";
+
+    _material = ccnew Material();
+    _material->setUuid("default-debug-renderer-material");
+    _material->initialize(matInfo);
+    _scenePass = (*_material->getPasses())[0];
+#endif
+}
+
+void PipelineProfiler::render(gfx::RenderPass *renderPass, uint32_t subPassId, gfx::CommandBuffer *cmdBuff) {
+#if CC_USE_DEBUG_RENDERER
+    _textRenderer->updateTextData();
+    _textRenderer->render(renderPass, subPassId, cmdBuff, _scenePass);
+#endif
 }
 
 void PipelineProfiler::resolveData(NativePipeline &pipeline) {
-
     const auto &timestampPeriod = pipeline.device->getCapabilities().timestampPeriod;
     std::vector<std::pair<RenderGraph::vertex_descriptor, uint64_t>> stack;
-    timeQuery.foreachData([&](const auto &key, uint64_t v) {
+    _timeQuery.foreachData([&](const auto &key, uint64_t v) {
         auto passID = ccstd::get<RenderGraph::vertex_descriptor>(key);
         if (stack.empty() || stack.back().first != passID) {
             stack.emplace_back(passID, v);
         } else {
-            passTimes.emplace(passID, (v - stack.back().second) * timestampPeriod);
+            _passTimes.emplace(passID, (v - stack.back().second) * timestampPeriod);
             stack.pop_back();
         }
     });
-
 #if CC_USE_DEBUG_RENDERER
-    auto *debugRenderer = DebugRenderer::getInstance();
-    for (auto &[passID, time] : passTimes) {
+    const uint32_t lineHeight = _textRenderer->getLineHeight();
+    const DebugTextInfo coreInfo = {{1.0F, 0.0F, 0.0F, 1.0F}, true, false, true, 1U, {0.0F, 0.0F, 0.0F, 1.0F}, 1.0F};
+
+    uint32_t lines = 0;
+    for (auto &[passID, time] : _passTimes) {
         auto name = get(RenderGraph::NameTag{}, pipeline.renderGraph, passID);
     }
+    _textRenderer->addText(StringUtil::format("CoreStats"), {5, static_cast<float>(lineHeight * lines++)}, coreInfo);
 #endif
 }
 

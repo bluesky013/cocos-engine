@@ -26,13 +26,16 @@
 
 #include "base/std/container/unordered_map.h"
 #include "GPUTimeQuery.h"
+#include "profiler/DebugRenderer.h"
+#include "core/assets/Material.h"
+#include "scene/Pass.h"
 
 namespace cc::render {
 struct NativePipeline;
 
 class PipelineProfiler {
 public:
-    PipelineProfiler() = default;
+    PipelineProfiler();
     ~PipelineProfiler() = default;
 
     void beginFrame(uint32_t passCount, gfx::CommandBuffer *cmdBuffer);
@@ -40,10 +43,18 @@ public:
     void resolveData(NativePipeline &pipeline);
 
     void writeGpuTimeStamp(gfx::CommandBuffer *cmdBuffer, uint32_t passID);
+    void render(gfx::RenderPass *renderPass, uint32_t subpass, gfx::CommandBuffer *cmdBuff);
 
 private:
-    GPUTimeQuery timeQuery;
-    ccstd::unordered_map<uint32_t, uint64_t> passTimes;
+    void initMaterial();
+
+    GPUTimeQuery _timeQuery;
+    ccstd::unordered_map<uint32_t, uint64_t> _passTimes;
+#if CC_USE_DEBUG_RENDERER
+    std::unique_ptr<TextRenderer> _textRenderer;
+    IntrusivePtr<Material> _material;
+    IntrusivePtr<scene::Pass> _scenePass;
+#endif
 };
 
 } // namespace cc::render

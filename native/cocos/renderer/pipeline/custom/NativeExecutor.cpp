@@ -1669,6 +1669,7 @@ struct RenderGraphVisitor : boost::dfs_visitor<> {
 
         if (pass.showStatistics) {
             submitProfilerCommands(ctx, vertID, pass);
+            // ctx.context.pipelineProfiler.render(ctx.currentPass, ctx.subpassIndex, ctx.cmdBuff);
         }
         ctx.context.pipelineProfiler.writeGpuTimeStamp(ctx.cmdBuff, vertID);
         ctx.cmdBuff->endRenderPass();

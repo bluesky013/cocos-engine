@@ -267,15 +267,12 @@ void TextRenderer::initialize(gfx::Device *device, const DebugRendererInfo &info
     }
 }
 
-void TextRenderer::render(gfx::RenderPass *renderPass, uint32_t subPassId, gfx::CommandBuffer *cmdBuff, pipeline::PipelineSceneData *sceneData) {
+void TextRenderer::render(gfx::RenderPass *renderPass, uint32_t subPassId, gfx::CommandBuffer *cmdBuff, scene::Pass* pass) {
     if (!_buffer || _buffer->empty()) {
         return;
     }
 
-    const auto &pass = sceneData->getDebugRendererPass();
-    const auto &shader = sceneData->getDebugRendererShader();
-
-    preparePso(_buffer->_inputAssembler, renderPass, subPassId, sceneData);
+    preparePso(_buffer->_inputAssembler, renderPass, subPassId, pass);
     if (!_pso) {
         return;
     }
@@ -309,6 +306,10 @@ void TextRenderer::updateTextData() {
 }
 
 void TextRenderer::updateWindowSize(uint32_t width, uint32_t height, uint32_t screenTransform, float flip) {
+    if (_windowWidth == width && _windowHeight == height) {
+        return;
+    }
+
     DebugBatchUBOData data = {};
     data.screenSize.x = static_cast<float>(width);
     data.screenSize.y = static_cast<float>(height);
@@ -331,10 +332,8 @@ uint32_t TextRenderer::getLineHeight(bool bold, bool italic) const {
     return 0U;
 }
 
-void TextRenderer::preparePso(gfx::InputAssembler *ia, gfx::RenderPass *renderPass, uint32_t subPassId, pipeline::PipelineSceneData *sceneData) {
-    const auto &pass = sceneData->getDebugRendererPass();
-    const auto &shader = sceneData->getDebugRendererShader();
-
+void TextRenderer::preparePso(gfx::InputAssembler *ia, gfx::RenderPass *renderPass, uint32_t subPassId, scene::Pass *pass) {
+    auto *shader = pass->getShaderVariant();
     const auto passHash = pass->getHash();
     const auto renderPassHash = renderPass->getHash();
     const auto iaHash = ia->getAttributesHash();
@@ -345,6 +344,7 @@ void TextRenderer::preparePso(gfx::InputAssembler *ia, gfx::RenderPass *renderPa
     ccstd::hash_combine(hash, iaHash);
     ccstd::hash_combine(hash, shaderID);
     ccstd::hash_combine(hash, subPassId);
+
     if (hash != _psoHash) {
         _pso = gfx::Device::getInstance()->createPipelineState({shader,
                                                                 _pipelineLayout,
@@ -461,7 +461,7 @@ void DebugRenderer::activate(gfx::Device *device, const DebugRendererInfo &info)
 void DebugRenderer::render(gfx::RenderPass *renderPass, gfx::CommandBuffer *cmdBuff, pipeline::PipelineSceneData *sceneData) {
     CC_PROFILE(DebugRendererRender);
     if (_textRenderer) {
-        _textRenderer->render(renderPass, 0, cmdBuff, sceneData);
+        _textRenderer->render(renderPass, 0, cmdBuff, sceneData->getDebugRendererPass());
     }
 }
 

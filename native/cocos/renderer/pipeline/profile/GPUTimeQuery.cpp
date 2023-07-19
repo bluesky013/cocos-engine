@@ -30,8 +30,8 @@ namespace cc::render {
 static constexpr uint32_t MAX_FRAME_INFLIGHT = 2; // from device agent
 
 const uint64_t* GPUTimeQuery::getReadBuffer() const {
-    const uint8_t* ptr = reinterpret_cast<const uint8_t *>(_results.data());
-    uint32_t readIndex = (_frameIndex + MAX_FRAME_INFLIGHT - 1) % MAX_FRAME_INFLIGHT;
+    const auto* ptr = reinterpret_cast<const uint8_t *>(_results.data());
+    const uint64_t readIndex = (_frameIndex + MAX_FRAME_INFLIGHT - 1) % MAX_FRAME_INFLIGHT;
     return reinterpret_cast<const uint64_t *>(ptr + readIndex * _capacity * sizeof(uint64_t));
 }
 
@@ -41,7 +41,7 @@ void GPUTimeQuery::resize(uint32_t size) {
     }
 
     _capacity = size;
-    _results.resize(_capacity * MAX_FRAME_INFLIGHT);
+    _results.resize(static_cast<uint64_t>(_capacity) * MAX_FRAME_INFLIGHT);
     _keys.resize(_capacity);
 
     auto *device = gfx::Device::getInstance();
@@ -78,8 +78,8 @@ void GPUTimeQuery::copyResult(gfx::CommandBuffer *cmdBuffer) {
     cmdBuffer->copyQueryResult(_queryPool, _readBackBuffer, 0, sizeof(uint64_t), 0, _count);
     _frameIndex = (_frameIndex + 1) % MAX_FRAME_INFLIGHT;
 
-    uint8_t* ptr = reinterpret_cast<uint8_t *>(_results.data());
-    uint8_t* writeBuffer = ptr + _frameIndex * _capacity * sizeof(uint64_t);
+    auto* ptr = reinterpret_cast<uint8_t *>(_results.data());
+    uint8_t* writeBuffer = ptr + static_cast<uint64_t>(_frameIndex) * _capacity * sizeof(uint64_t);
     _readBackBuffer->readBack(writeBuffer, 0, _capacity * sizeof(uint64_t));
 }
 

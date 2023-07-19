@@ -33,6 +33,10 @@
 
 namespace cc {
 
+namespace scene {
+class Pass;
+}
+
 namespace pipeline {
 class PipelineSceneData;
 }
@@ -73,10 +77,6 @@ struct DebugFontInfo {
     Vec2 invTextureSize{0.0F, 0.0F};
 };
 
-struct ProfileGlobal {
-
-};
-
 constexpr uint32_t DEBUG_FONT_COUNT = 4U;
 using DebugFontArray = ccstd::array<DebugFontInfo, DEBUG_FONT_COUNT>;
 
@@ -88,13 +88,13 @@ public:
     void initialize(gfx::Device *device, const DebugRendererInfo &info, uint32_t fontSize);
     void updateWindowSize(uint32_t width, uint32_t height, uint32_t screenTransform, float flip);
     void updateTextData();
-    void render(gfx::RenderPass *renderPass, uint32_t subPassId, gfx::CommandBuffer *cmdBuff, pipeline::PipelineSceneData *sceneData);
+    void render(gfx::RenderPass *renderPass, uint32_t subPassId, gfx::CommandBuffer *cmdBuff, scene::Pass* pass);
 
     void addText(const ccstd::string &text, const Vec2 &screenPos, const DebugTextInfo &info);
     uint32_t getLineHeight(bool bold = false, bool italic = false) const;
 
 private:
-    void preparePso(gfx::InputAssembler *ia, gfx::RenderPass *renderPass, uint32_t subPassId, pipeline::PipelineSceneData *sceneData);
+    void preparePso(gfx::InputAssembler *ia, gfx::RenderPass *renderPass, uint32_t subPassId, scene::Pass *pass);
 
     gfx::Device *_device{nullptr};
     DebugVertexBuffer *_buffer{nullptr};
@@ -104,6 +104,8 @@ private:
     IntrusivePtr<gfx::PipelineLayout> _pipelineLayout;
     IntrusivePtr<gfx::PipelineState> _pso;
     uint32_t _psoHash = 0;
+    uint32_t _windowWidth = 1;
+    uint32_t _windowHeight = 1;
 };
 
 class DebugRenderer {
@@ -129,7 +131,7 @@ private:
     uint32_t getLineHeight(bool bold = false, bool italic = false);
     static DebugRenderer *instance;
     std::unique_ptr<TextRenderer> _textRenderer;
-    
+
     friend class Profiler;
 };
 
